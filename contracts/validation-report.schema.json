@@ -1,0 +1,265 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://tetherin.dev/contracts/validation-report.schema.json",
+  "title": "TetherIn validation report v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "reportId",
+    "manifestId",
+    "pullRequest",
+    "executionMode",
+    "checks",
+    "greptileReview",
+    "coverage",
+    "gate",
+    "createdAt"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "const": "tetherin.validation-report/v1"
+    },
+    "reportId": {
+      "type": "string",
+      "pattern": "^[a-z0-9][a-z0-9._:-]{7,127}$"
+    },
+    "manifestId": {
+      "type": "string",
+      "pattern": "^[a-z0-9][a-z0-9._:-]{7,127}$"
+    },
+    "pullRequest": {
+      "$ref": "#/$defs/pullRequest"
+    },
+    "executionMode": {
+      "type": "string",
+      "enum": ["live", "fixture"]
+    },
+    "checks": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/$defs/check"
+      }
+    },
+    "greptileReview": {
+      "$ref": "#/$defs/greptileReview"
+    },
+    "coverage": {
+      "$ref": "#/$defs/coverage"
+    },
+    "gate": {
+      "$ref": "#/$defs/gate"
+    },
+    "createdAt": {
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+  "$defs": {
+    "sha1": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{40}$"
+    },
+    "pullRequest": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["repository", "number", "url", "headSha", "baseSha", "draft"],
+      "properties": {
+        "repository": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+$"
+        },
+        "number": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "url": {
+          "type": "string",
+          "format": "uri",
+          "pattern": "^https://github\\.com/"
+        },
+        "headSha": {
+          "$ref": "#/$defs/sha1"
+        },
+        "baseSha": {
+          "$ref": "#/$defs/sha1"
+        },
+        "draft": {
+          "const": true
+        }
+      }
+    },
+    "check": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "command", "status", "exitCode", "durationMs", "outputDigest"],
+      "properties": {
+        "name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "command": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string"
+          }
+        },
+        "status": {
+          "type": "string",
+          "enum": ["passed", "failed", "timed-out", "skipped"]
+        },
+        "exitCode": {
+          "type": ["integer", "null"]
+        },
+        "durationMs": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "outputDigest": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "redactedExcerpt": {
+          "type": "string",
+          "maxLength": 4000
+        }
+      }
+    },
+    "greptileReview": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "transport",
+        "status",
+        "codeReviewId",
+        "reviewedHeadSha",
+        "hasNewCommitsSinceReview",
+        "unaddressedComments",
+        "retrievedAt"
+      ],
+      "properties": {
+        "transport": {
+          "type": "string",
+          "enum": ["mcp", "fixture", "unavailable"]
+        },
+        "status": {
+          "type": "string",
+          "enum": [
+            "PENDING",
+            "REVIEWING_FILES",
+            "GENERATING_SUMMARY",
+            "COMPLETED",
+            "FAILED",
+            "SKIPPED",
+            "UNAVAILABLE"
+          ]
+        },
+        "codeReviewId": {
+          "type": ["string", "null"]
+        },
+        "reviewedHeadSha": {
+          "oneOf": [
+            {"$ref": "#/$defs/sha1"},
+            {"type": "null"}
+          ]
+        },
+        "confidenceScore": {
+          "type": ["number", "null"],
+          "minimum": 0,
+          "maximum": 5
+        },
+        "hasNewCommitsSinceReview": {
+          "type": "boolean"
+        },
+        "unaddressedComments": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/reviewComment"
+          }
+        },
+        "retrievedAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      }
+    },
+    "reviewComment": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "body", "filePath", "lineStart", "lineEnd", "addressed"],
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "body": {
+          "type": "string",
+          "minLength": 1
+        },
+        "filePath": {
+          "type": ["string", "null"]
+        },
+        "lineStart": {
+          "type": ["integer", "null"],
+          "minimum": 1
+        },
+        "lineEnd": {
+          "type": ["integer", "null"],
+          "minimum": 1
+        },
+        "addressed": {
+          "const": false
+        }
+      }
+    },
+    "coverage": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["status", "confirmedCandidates", "migratedCandidates", "unresolvedCandidates"],
+      "properties": {
+        "status": {
+          "type": "string",
+          "enum": ["passed", "failed", "partial"]
+        },
+        "confirmedCandidates": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "migratedCandidates": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "unresolvedCandidates": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      }
+    },
+    "gate": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["decision", "reasons", "humanApprovalRequired"],
+      "properties": {
+        "decision": {
+          "type": "string",
+          "enum": ["pass", "fail", "pending"]
+        },
+        "reasons": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "humanApprovalRequired": {
+          "const": true
+        }
+      }
+    }
+  }
+}

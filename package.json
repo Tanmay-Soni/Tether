@@ -1,0 +1,14 @@
+{
+  "name": "tether-in",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Self-maintaining API integrations powered by oasdiff, Codex, and Greptile",
+  "packageManager": "pnpm@11.23.0",
+  "engines": {
+    "node": ">=22.18 <25"
+  },
+  "scripts": {
+    "verify:planning": "bash scripts/verify-planning.sh"
+  },
+  "license": "MIT"
+}

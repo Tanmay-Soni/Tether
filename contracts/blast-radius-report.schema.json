@@ -1,0 +1,299 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://tetherin.dev/contracts/blast-radius-report.schema.json",
+  "title": "TetherIn blast radius report v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "reportId",
+    "manifestId",
+    "consumer",
+    "executionMode",
+    "greptile",
+    "deterministicConfirmation",
+    "candidates",
+    "completeness",
+    "createdAt"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "const": "tetherin.blast-radius-report/v1"
+    },
+    "reportId": {
+      "type": "string",
+      "pattern": "^[a-z0-9][a-z0-9._:-]{7,127}$"
+    },
+    "manifestId": {
+      "type": "string",
+      "pattern": "^[a-z0-9][a-z0-9._:-]{7,127}$"
+    },
+    "consumer": {
+      "$ref": "#/$defs/consumer"
+    },
+    "executionMode": {
+      "type": "string",
+      "enum": ["live", "fixture"]
+    },
+    "greptile": {
+      "$ref": "#/$defs/greptileEvidence"
+    },
+    "deterministicConfirmation": {
+      "$ref": "#/$defs/deterministicConfirmation"
+    },
+    "candidates": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/candidate"
+      }
+    },
+    "completeness": {
+      "type": "string",
+      "enum": ["complete", "partial", "unavailable"]
+    },
+    "limitations": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      },
+      "default": []
+    },
+    "createdAt": {
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+  "$defs": {
+    "sha1": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{40}$"
+    },
+    "consumer": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["repository", "defaultBranch", "baseSha", "authorizedAt"],
+      "properties": {
+        "repository": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+$"
+        },
+        "defaultBranch": {
+          "type": "string",
+          "minLength": 1
+        },
+        "baseSha": {
+          "$ref": "#/$defs/sha1"
+        },
+        "authorizedAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      }
+    },
+    "kbSearch": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["query", "tool", "returned", "truncated"],
+      "properties": {
+        "query": {
+          "type": "string",
+          "minLength": 2,
+          "maxLength": 200
+        },
+        "tool": {
+          "const": "search_knowledge_base"
+        },
+        "returned": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "truncated": {
+          "type": "boolean"
+        },
+        "truncationReason": {
+          "type": "string",
+          "enum": [
+            "document_scan_cap",
+            "scanned_character_cap",
+            "response_character_cap",
+            "time_budget"
+          ]
+        },
+        "documentsFailed": {
+          "type": "integer",
+          "minimum": 0
+        }
+      }
+    },
+    "greptileEvidence": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "transport",
+        "availability",
+        "repoNamespaceExternalId",
+        "knowledgeBaseVersions",
+        "searches",
+        "untrustedContent"
+      ],
+      "properties": {
+        "transport": {
+          "type": "string",
+          "enum": ["mcp", "fixture", "unavailable"]
+        },
+        "availability": {
+          "type": "string",
+          "enum": ["available", "not-enrolled", "failed", "fixture"]
+        },
+        "repoNamespaceExternalId": {
+          "type": ["string", "null"]
+        },
+        "knowledgeBaseVersions": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["docs", "reverts"],
+          "properties": {
+            "docs": {
+              "type": ["string", "null"]
+            },
+            "reverts": {
+              "type": ["string", "null"]
+            }
+          }
+        },
+        "searches": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/kbSearch"
+          }
+        },
+        "untrustedContent": {
+          "const": true
+        },
+        "notice": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "deterministicConfirmation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["repositorySha", "tools", "status", "completedAt"],
+      "properties": {
+        "repositorySha": {
+          "$ref": "#/$defs/sha1"
+        },
+        "tools": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string",
+            "enum": ["rg", "typescript-ast", "python-ast", "ruby-ast", "other-ast"]
+          },
+          "uniqueItems": true
+        },
+        "status": {
+          "type": "string",
+          "enum": ["complete", "partial", "failed"]
+        },
+        "completedAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      }
+    },
+    "evidenceRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["source", "reference"],
+      "properties": {
+        "source": {
+          "type": "string",
+          "enum": ["greptile-kb", "deterministic-rg", "deterministic-ast"]
+        },
+        "reference": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 1000
+        },
+        "kbVersion": {
+          "type": "string"
+        },
+        "untrusted": {
+          "type": "boolean"
+        }
+      }
+    },
+    "candidate": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "path",
+        "symbol",
+        "lineStart",
+        "lineEnd",
+        "usageKind",
+        "whyAffected",
+        "confidence",
+        "confirmation",
+        "evidence"
+      ],
+      "properties": {
+        "path": {
+          "type": "string",
+          "minLength": 1,
+          "not": {
+            "pattern": "(^|/)\\.\\.(/|$)"
+          }
+        },
+        "symbol": {
+          "type": ["string", "null"]
+        },
+        "lineStart": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "lineEnd": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "usageKind": {
+          "type": "string",
+          "enum": [
+            "direct-sdk-call",
+            "http-call",
+            "wrapper",
+            "type",
+            "transform",
+            "webhook",
+            "test",
+            "downstream-assumption",
+            "other"
+          ]
+        },
+        "whyAffected": {
+          "type": "string",
+          "minLength": 1
+        },
+        "confidence": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "confirmation": {
+          "type": "string",
+          "enum": ["confirmed", "possible", "rejected"]
+        },
+        "evidence": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/evidenceRef"
+          }
+        }
+      }
+    }
+  }
+}

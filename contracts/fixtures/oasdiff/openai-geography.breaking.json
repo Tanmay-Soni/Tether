@@ -1,0 +1,36 @@
+[
+  {
+    "id": "request-property-removed",
+    "text": "removed the request property `geography`",
+    "level": 2,
+    "operation": "POST",
+    "operationId": "create-project",
+    "path": "/organization/projects",
+    "section": "paths",
+    "baseSource": {
+      "file": "https://raw.githubusercontent.com/openai/openai-openapi/13c6a94fca988f8be3c5de09d73f012709985d10/openapi.yaml",
+      "line": 45660,
+      "column": 9,
+      "endLine": 45668,
+      "endColumn": 69
+    },
+    "fingerprint": "5b9288552958"
+  },
+  {
+    "id": "request-property-removed",
+    "text": "removed the request property `geography`",
+    "level": 2,
+    "operation": "POST",
+    "operationId": "modify-project",
+    "path": "/organization/projects/{project_id}",
+    "section": "paths",
+    "baseSource": {
+      "file": "https://raw.githubusercontent.com/openai/openai-openapi/13c6a94fca988f8be3c5de09d73f012709985d10/openapi.yaml",
+      "line": 46372,
+      "column": 9,
+      "endLine": 46376,
+      "endColumn": 50
+    },
+    "fingerprint": "a37619d658f2"
+  }
+]

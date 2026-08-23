@@ -1,0 +1,84 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://tetherin.dev/contracts/workflow-event.schema.json",
+  "title": "TetherIn append-only workflow event v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "eventId",
+    "jobId",
+    "idempotencyKey",
+    "sequence",
+    "type",
+    "occurredAt",
+    "actor",
+    "payloadDigest",
+    "payload"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "const": "tetherin.workflow-event/v1"
+    },
+    "eventId": {
+      "type": "string",
+      "pattern": "^[a-z0-9][a-z0-9._:-]{7,127}$"
+    },
+    "jobId": {
+      "type": "string",
+      "pattern": "^[a-z0-9][a-z0-9._:-]{7,127}$"
+    },
+    "idempotencyKey": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "sequence": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "type": {
+      "type": "string",
+      "enum": [
+        "change.discovered",
+        "contract.diffed",
+        "impact.enrichment-started",
+        "impact.enriched",
+        "impact.confirmed",
+        "impact.none",
+        "migration.started",
+        "migration.patched",
+        "checks.completed",
+        "pull-request.opened",
+        "greptile.review-triggered",
+        "greptile.review-completed",
+        "validation.completed",
+        "migration.follow-up-started",
+        "human.ready",
+        "job.retry-scheduled",
+        "job.needs-input",
+        "job.failed"
+      ]
+    },
+    "occurredAt": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "actor": {
+      "type": "string",
+      "enum": ["system", "oasdiff", "greptile", "codex", "github", "human"]
+    },
+    "causationEventId": {
+      "type": ["string", "null"]
+    },
+    "correlationId": {
+      "type": ["string", "null"]
+    },
+    "payloadDigest": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "payload": {
+      "type": "object"
+    }
+  }
+}
