@@ -87,6 +87,7 @@ grep -q 'oasdiff/oasdiff/releases/tag/v1.29.1' docs/provenance.md
 grep -q 'search_knowledge_base' docs/research/greptile-capabilities.md
 grep -q '57a602ba9de7357fd0385f20e23460b8642b74a9' docs/workstreams/person-c/README.md
 grep -q 'da15ba9778ce07c6178a4af4eb42f44fdd7a1fc3' docs/workstreams/person-c/README.md
+grep -q 'PLANNING_BASE_SHA=13d5209ebb44fe9934d15c3508f9faa1091d60f2' docs/workstreams/BASELINES.md
 test "$(jq -r '.overrides.ajv' package.json)" = "8.20.0"
 test "$(jq -r '.engine.rawOutputSha256' contracts/examples/openai-geography.manifest.json)" = "07640494838ec2e0ebce6af7098cf6e46fd269999e051aa6fa2d694e837ee382"
 grep -q 'DESIGN_VARIANCE=5' docs/design/dashboard.md
