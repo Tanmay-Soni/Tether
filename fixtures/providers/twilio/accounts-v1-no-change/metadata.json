@@ -1,0 +1,53 @@
+{
+  "schemaVersion": "tetherin.provider-fixture/v1",
+  "fixtureId": "twilio-accounts-v1-no-change",
+  "provider": "twilio",
+  "service": "twilio_accounts_v1.yaml",
+  "status": "verified-no-change",
+  "repositoryUrl": "https://github.com/twilio/twilio-oai",
+  "specPath": "spec/yaml/twilio_accounts_v1.yaml",
+  "licenseSpdx": "MIT",
+  "licenseUrl": "https://raw.githubusercontent.com/twilio/twilio-oai/b02705eb7dbf63e0925375779730a4fc93c3b0b4/LICENSE",
+  "licenseSha256": "282418d5a4ca0a6cd3476637c41bb229e592fc289156d22fbfa188cec1169ff3",
+  "specDeclaredLicense": "Apache 2.0",
+  "old": {
+    "commit": "591755b562834daae097da2371e821f349c5f489",
+    "sourceUrl": "https://raw.githubusercontent.com/twilio/twilio-oai/591755b562834daae097da2371e821f349c5f489/spec/yaml/twilio_accounts_v1.yaml",
+    "fullSpecSha256": "d1a3624923ab21eb34ad1d60ed7987b9132049589a612b37ead592ea18e46f50",
+    "sourceBlobSha": "42a1542ef37f3f34833a5d25fe45db8965389d91",
+    "fragmentSha256": "b2ea4ddf6cdc685563ae1cdfe36ab5561f67065168ebd6ba1551fc4471c40c68"
+  },
+  "new": {
+    "commit": "b02705eb7dbf63e0925375779730a4fc93c3b0b4",
+    "sourceUrl": "https://raw.githubusercontent.com/twilio/twilio-oai/b02705eb7dbf63e0925375779730a4fc93c3b0b4/spec/yaml/twilio_accounts_v1.yaml",
+    "fullSpecSha256": "d1a3624923ab21eb34ad1d60ed7987b9132049589a612b37ead592ea18e46f50",
+    "sourceBlobSha": "42a1542ef37f3f34833a5d25fe45db8965389d91",
+    "fragmentSha256": "b2ea4ddf6cdc685563ae1cdfe36ab5561f67065168ebd6ba1551fc4471c40c68"
+  },
+  "evidenceUrl": "https://github.com/twilio/twilio-oai/compare/591755b562834daae097da2371e821f349c5f489...b02705eb7dbf63e0925375779730a4fc93c3b0b4",
+  "assembly": "The fixture documents retain the exact Accounts v1 info and Auth Token promotion description values inside a minimum OpenAPI wrapper. The selected service blob is byte-identical at both official revisions.",
+  "manifestLimitation": "The unchanged v1 migration-manifest schema requires changes.minItems=1, so this verified [] result intentionally has no fabricated manifest.",
+  "oasdiff": {
+    "version": "1.29.1",
+    "releaseCommit": "2bb87bada404d350cb56e5504e8bd5d76f6159bf",
+    "breakingCommand": [
+      "oasdiff",
+      "breaking",
+      "--format",
+      "json",
+      "https://raw.githubusercontent.com/twilio/twilio-oai/591755b562834daae097da2371e821f349c5f489/spec/yaml/twilio_accounts_v1.yaml",
+      "https://raw.githubusercontent.com/twilio/twilio-oai/b02705eb7dbf63e0925375779730a4fc93c3b0b4/spec/yaml/twilio_accounts_v1.yaml"
+    ],
+    "changelogCommand": [
+      "oasdiff",
+      "changelog",
+      "--format",
+      "json",
+      "https://raw.githubusercontent.com/twilio/twilio-oai/591755b562834daae097da2371e821f349c5f489/spec/yaml/twilio_accounts_v1.yaml",
+      "https://raw.githubusercontent.com/twilio/twilio-oai/b02705eb7dbf63e0925375779730a4fc93c3b0b4/spec/yaml/twilio_accounts_v1.yaml"
+    ],
+    "breakingOutputSha256": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570",
+    "changelogOutputSha256": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570"
+  },
+  "generatedAt": "2026-08-23T22:17:11Z"
+}

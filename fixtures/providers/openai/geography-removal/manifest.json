@@ -1,0 +1,121 @@
+{
+  "schemaVersion": "tetherin.migration-manifest/v1",
+  "manifestId": "openai:6c027864e3ac1fd3a42884b74c81b078",
+  "provider": "openai",
+  "source": {
+    "repositoryUrl": "https://github.com/openai/openai-openapi",
+    "licenseSpdx": "MIT",
+    "old": {
+      "commit": "13c6a94fca988f8be3c5de09d73f012709985d10",
+      "specUrl": "https://raw.githubusercontent.com/openai/openai-openapi/13c6a94fca988f8be3c5de09d73f012709985d10/openapi.yaml",
+      "sha256": "a85b8a1274f0f65bcddbb8762993da9075846e2c97a5c81cf6822c9568038c33"
+    },
+    "new": {
+      "commit": "f85dbe223d40e1a31cba812ab2d755c7e98a92a3",
+      "specUrl": "https://raw.githubusercontent.com/openai/openai-openapi/f85dbe223d40e1a31cba812ab2d755c7e98a92a3/openapi.yaml",
+      "sha256": "db5d7478feae10b4d331834c60d9765a8aa042e38419f9b1694288c11aa8ebc8"
+    },
+    "fetchedAt": "2026-08-23T22:17:11Z"
+  },
+  "engine": {
+    "name": "oasdiff",
+    "version": "1.29.1",
+    "releaseCommit": "2bb87bada404d350cb56e5504e8bd5d76f6159bf",
+    "releaseUrl": "https://github.com/oasdiff/oasdiff/releases/tag/v1.29.1",
+    "command": [
+      "oasdiff",
+      "breaking",
+      "--format",
+      "json",
+      "OLD_SPEC_PATH",
+      "NEW_SPEC_PATH"
+    ],
+    "outputFormat": "json",
+    "rawOutputSha256": "07640494838ec2e0ebce6af7098cf6e46fd269999e051aa6fa2d694e837ee382"
+  },
+  "changes": [
+    {
+      "oasdiffId": "request-property-removed",
+      "fingerprint": "5b9288552958",
+      "severity": "warning",
+      "breaking": true,
+      "method": "POST",
+      "path": "/organization/projects",
+      "operationId": "create-project",
+      "text": "removed the request property `geography`",
+      "subject": {
+        "kind": "request-property",
+        "name": "geography",
+        "jsonPointer": "/components/schemas/ProjectCreateRequest/properties/geography"
+      },
+      "oldLocation": {
+        "url": "https://raw.githubusercontent.com/openai/openai-openapi/13c6a94fca988f8be3c5de09d73f012709985d10/openapi.yaml",
+        "line": 45660,
+        "column": 9,
+        "endLine": 45668,
+        "endColumn": 69
+      },
+      "newLocation": null,
+      "schemaExcerpts": {
+        "old": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Create the project with the specified data residency region. Your organization must have access to Data residency functionality in order to use. See [data residency controls](/docs/guides/your-data#data-residency-controls) to review the functionality and limitations of setting this field."
+        },
+        "new": null
+      }
+    },
+    {
+      "oasdiffId": "request-property-removed",
+      "fingerprint": "a37619d658f2",
+      "severity": "warning",
+      "breaking": true,
+      "method": "POST",
+      "path": "/organization/projects/{project_id}",
+      "operationId": "modify-project",
+      "text": "removed the request property `geography`",
+      "subject": {
+        "kind": "request-property",
+        "name": "geography",
+        "jsonPointer": "/components/schemas/ProjectUpdateRequest/properties/geography"
+      },
+      "oldLocation": {
+        "url": "https://raw.githubusercontent.com/openai/openai-openapi/13c6a94fca988f8be3c5de09d73f012709985d10/openapi.yaml",
+        "line": 46372,
+        "column": 9,
+        "endLine": 46376,
+        "endColumn": 50
+      },
+      "newLocation": null,
+      "schemaExcerpts": {
+        "old": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Geography for the project."
+        },
+        "new": null
+      }
+    }
+  ],
+  "providerGuidance": [
+    {
+      "title": "OpenAI OpenAPI replacement commit",
+      "url": "https://github.com/openai/openai-openapi/commit/f85dbe223d40e1a31cba812ab2d755c7e98a92a3",
+      "source": "provider-repository",
+      "excerpt": "The official commit introduces residency in place of geography."
+    }
+  ],
+  "detectedAt": "2026-08-23T22:17:11Z"
+}

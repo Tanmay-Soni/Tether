@@ -1,0 +1,32 @@
+# Minimal test document assembled from the official Twilio Accounts v1 operation
+# named in metadata.json. It is not the full upstream specification.
+openapi: 3.0.1
+info:
+  title: Twilio - Accounts
+  description: This is the public Twilio REST API.
+  termsOfService: https://www.twilio.com/legal/tos
+  contact:
+    name: Twilio Support
+    url: https://support.twilio.com
+    email: support@twilio.com
+  license:
+    name: Apache 2.0
+    url: https://www.apache.org/licenses/LICENSE-2.0.html
+  version: 1.0.0
+  x-twilio:
+    apiStandards: v0.1
+paths:
+  /v1/AuthTokens/Promote:
+    post:
+      description: Promote the secondary Auth Token to primary. After promoting the
+        new token, all requests to Twilio using your old primary Auth Token will result
+        in an error.
+      summary: Promote the secondary Auth Token to primary. After promoting the new
+        token, all requests to Twilio using your old primary Auth Token will result
+        in an error.
+      operationId: UpdateAuthTokenPromotion
+      responses:
+        "200":
+          description: Successful response
+servers:
+  - url: https://accounts.twilio.com
