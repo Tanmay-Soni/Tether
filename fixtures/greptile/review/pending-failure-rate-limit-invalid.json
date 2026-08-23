@@ -1,0 +1,38 @@
+{
+  "name": "review-negative-cases",
+  "executionMode": "fixture",
+  "cases": [
+    {
+      "tool": "get_code_review",
+      "response": {
+        "codeReview": {
+          "id": "cr_pending",
+          "status": "PENDING"
+        }
+      }
+    },
+    {
+      "tool": "get_code_review",
+      "response": {
+        "codeReview": {
+          "id": "cr_failed",
+          "status": "FAILED"
+        }
+      }
+    },
+    {
+      "tool": "get_code_review",
+      "errorKind": "rate-limited",
+      "retryAfterMs": 1000
+    },
+    {
+      "tool": "get_code_review",
+      "response": {
+        "codeReview": {
+          "id": "cr_invalid",
+          "status": "SURPRISE_STATUS"
+        }
+      }
+    }
+  ]
+}
