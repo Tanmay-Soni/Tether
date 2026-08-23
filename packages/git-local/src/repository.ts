@@ -126,7 +126,8 @@ export function migrationBranch(provider: string, manifestId: string): string {
     .toLowerCase()
     .replace(/[^a-z0-9-]+/gu, "-")
     .replace(/^-+|-+$/gu, "")
-    .slice(-42);
+    .slice(-42)
+    .replace(/^-+/u, "");
   return `tetherin/${provider}/${short}`.slice(0, 80);
 }
 
@@ -180,10 +181,19 @@ export async function commitPatch(input: {
       "Codex produced no migration patch",
     );
   const body = `${input.message}\n\nTetherIn-Run: ${input.runId}\nTetherIn-Manifest: ${input.manifestId}`;
-  await runCommand(["git", "commit", "-m", body], {
-    cwd: input.checkout,
-    timeoutMs: 60_000,
-  });
+  await runCommand(
+    [
+      "git",
+      "-c",
+      "user.name=TetherIn",
+      "-c",
+      "user.email=tetherin@users.noreply.github.com",
+      "commit",
+      "-m",
+      body,
+    ],
+    { cwd: input.checkout, timeoutMs: 60_000 },
+  );
   return (
     await runCommand(["git", "rev-parse", "HEAD"], { cwd: input.checkout })
   ).stdout.trim();

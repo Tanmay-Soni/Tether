@@ -36,6 +36,10 @@ for await (const line of lines) {
     });
     const thread = codex.startThread({
       workingDirectory: checkoutRoot,
+      sandboxMode: "workspace-write",
+      approvalPolicy: "never",
+      networkAccessEnabled: false,
+      webSearchMode: "disabled",
       ...(request.model ? { model: request.model } : {}),
     });
     const result = await thread.run(request.prompt);

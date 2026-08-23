@@ -76,6 +76,12 @@ interface BlastReport {
   [key: string]: unknown;
 }
 
+function runDirectory(config: TetherInConfig, runId: string): string {
+  const safeId = runId.replace(/[^A-Za-z0-9_-]/gu, "-");
+  if (!safeId || safeId.length > 128) throw new Error("RUN_ID_PATH_INVALID");
+  return join(config.runsPath, safeId);
+}
+
 function readConsumerInstructions(checkout: string): ConsumerInstructions {
   const path = join(checkout, "tetherin.yaml");
   if (!existsSync(path)) throw new Error("CONSUMER_INSTRUCTIONS_MISSING");
@@ -186,7 +192,8 @@ async function detectManifest(
   const newRevision = await adapter.resolveRevision(NEW_STRIPE, {
     variant: "legacy-v1",
   });
-  const specCache = join(config.runsPath, runId, "spec-cache");
+  const localRun = runDirectory(config, runId);
+  const specCache = join(localRun, "spec-cache");
   const oldSpec = await adapter.materialize(oldRevision, specCache);
   const newSpec = await adapter.materialize(newRevision, specCache);
   const comparison = await createOasdiffEngine({
@@ -195,7 +202,7 @@ async function detectManifest(
     oldSpec,
     newSpec,
     mode: "breaking",
-    artifactDir: join(config.runsPath, runId, "oasdiff"),
+    artifactDir: join(localRun, "oasdiff"),
     matchPath: STRIPE_MATCH_PATH,
   });
   if (!comparison.rawChanges.length) throw new Error("NO_CHANGE");
@@ -482,9 +489,13 @@ export async function processIntent(
       });
     }
     const branch = String(
-      run.branch_name ?? migrationBranch("stripe", String(manifest.manifestId)),
+      run.branch_name ??
+        migrationBranch(
+          "stripe",
+          `${String(manifest.manifestId)}-${runId.slice(-8)}`,
+        ),
     );
-    const checkout = join(config.runsPath, runId, "checkout");
+    const checkout = join(runDirectory(config, runId), "checkout");
     if (!existsSync(checkout))
       await createIsolatedWorktree({
         sourceRepo: config.consumerRepoPath,
@@ -509,11 +520,28 @@ export async function processIntent(
       promptDigest: prompt.digest,
       ...(config.codexModel ? { model: config.codexModel } : {}),
     });
+    recordJson(store, config, runId, config.mode, "codex-execution", {
+      promptDigest: prompt.digest,
+      threadId: result.threadId,
+      finalResponseDigest: result.finalResponseDigest,
+      summary: result.summary,
+      status: result.status,
+    });
     if (result.status !== "completed") {
       move(store, runId, "NEEDS_INPUT", "codex", {
         reason: result.errorCode ?? "Codex did not produce a safe patch",
       });
       return;
+    }
+    const changedBeforeLock = await runCommand(["git", "diff", "--name-only"], {
+      cwd: checkout,
+    });
+    if (changedBeforeLock.stdout.split(/\r?\n/u).includes("package.json")) {
+      await runCommand(["bun", "install"], {
+        cwd: checkout,
+        timeoutMs: 120_000,
+        outputLimit: 256_000,
+      });
     }
     const diff = await inspectDiff(checkout, consumer.allowedPaths);
     recordJson(store, config, runId, config.mode, "codex-record", {

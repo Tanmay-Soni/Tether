@@ -13,16 +13,13 @@ const build = Bun.spawn([process.execPath, "run", "build"], {
 if ((await build.exited) !== 0) process.exit(1);
 
 const children = [
-  Bun.spawn(
-    [process.execPath, "run", "--filter", "@tetherin/runner", "start"],
-    {
-      cwd: config.repoRoot,
-      stdin: "ignore",
-      stdout: "inherit",
-      stderr: "inherit",
-    },
-  ),
-  Bun.spawn([process.execPath, "run", "--filter", "@tetherin/web", "start"], {
+  Bun.spawn([process.execPath, "apps/runner/src/main.ts"], {
+    cwd: config.repoRoot,
+    stdin: "ignore",
+    stdout: "inherit",
+    stderr: "inherit",
+  }),
+  Bun.spawn([process.execPath, "apps/web/src/server.ts"], {
     cwd: config.repoRoot,
     stdin: "ignore",
     stdout: "inherit",
