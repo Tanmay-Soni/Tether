@@ -3,6 +3,7 @@
 .env.*
 !.env.example
 .next/
+.local/
 .tetherin/
 .turbo/
 coverage/

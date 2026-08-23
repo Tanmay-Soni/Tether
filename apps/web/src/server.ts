@@ -55,7 +55,6 @@ async function diagnostics(): Promise<Record<string, unknown>> {
       const process = Bun.spawn(args, {
         stdout: "pipe",
         stderr: "pipe",
-        env: { PATH: Bun.env.PATH ?? "" },
       });
       const code = await process.exited;
       checks.push({

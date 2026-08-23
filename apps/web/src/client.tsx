@@ -161,7 +161,7 @@ function App() {
       grayColor="slate"
       radius="large"
     >
-      <a className="skip" href="#run-detail">
+      <a className="skip" href="#run-detail" tabIndex={0}>
         Skip to run detail
       </a>
       <header className="topbar">
@@ -243,7 +243,7 @@ function App() {
           {current ? (
             <RunDetail run={current} busy={busy} onAction={action} />
           ) : (
-            <EmptyControl />
+            <EmptyControl diagnostics={status.diagnostics} />
           )}
         </main>
       </div>
@@ -505,18 +505,32 @@ function EvidencePanel({
     </section>
   );
 }
-function EmptyControl() {
+function EmptyControl({ diagnostics }: { diagnostics: Status["diagnostics"] }) {
+  const ready = diagnostics.checks.every((check) => check.status === "ready");
   return (
     <div className="empty-control">
       <div className="instrument">
-        <LinkSimple />
+        {ready ? <Check weight="bold" /> : <Warning weight="fill" />}
       </div>
-      <span className="eyebrow">LOCAL CONTROL ROOM</span>
-      <h1>Ready to trace a migration</h1>
+      <span className="eyebrow">LIVE DEMO READY</span>
+      <h1>{ready ? "All systems ready" : "Preflight needs attention"}</h1>
       <p>
-        Start a run to compare the official contract, confirm consumer impact,
-        and prepare a human-reviewed draft pull request.
+        Click Generate demo PR to watch the AI compare Stripe, trace the blast
+        radius, migrate the consumer, run its checks, and publish a draft PR.
       </p>
+      <ul className="demo-readiness" aria-label="Demo readiness checks">
+        {diagnostics.checks.map((check) => (
+          <li key={check.name} className={check.status}>
+            <StatusIcon
+              state={check.status === "ready" ? "READY" : "BLOCKED"}
+            />
+            <span>
+              <strong>{check.name}</strong>
+              <small>{check.detail}</small>
+            </span>
+          </li>
+        ))}
+      </ul>
     </div>
   );
 }

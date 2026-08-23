@@ -3,7 +3,7 @@
 ## One-time setup
 
 Install Bun 1.4.x and ensure `bun` is on the normal shell `PATH`; TetherIn never
-depends on a task-private runtime. Node 22.18+, Git, `rg`, `jq`, `gh`, and the
+depends on a session-local runtime. Node 22.18+, Git, `rg`, `jq`, `gh`, and the
 Codex CLI are also required. Authenticate once with `gh auth login` and
 `codex login`, then:
 

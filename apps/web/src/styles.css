@@ -6,7 +6,7 @@
   --pearl: #f1f1ee;
   --smoke: #e2e2de;
   --graphite: #292b2e;
-  --muted: #686b70;
+  --muted: #5b5d61;
   --line: #c9cac6;
   --orange: #d95f18;
   --inset: inset 2px 2px 5px #c7c7c2, inset -2px -2px 5px #fafaf7;
@@ -24,6 +24,13 @@ body {
 button,
 a {
   font: inherit;
+}
+.rt-Button.rt-variant-solid:not(:disabled) {
+  background: #8a3a0d;
+  color: #ffffff;
+}
+.rt-Button.rt-variant-solid:not(:disabled):hover {
+  background: #71300c;
 }
 .skip {
   position: fixed;
@@ -449,6 +456,48 @@ code {
   color: var(--muted);
   line-height: 1.6;
 }
+.demo-readiness {
+  width: min(680px, 100%);
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  margin: 22px 0 0;
+  padding: 0;
+  list-style: none;
+  text-align: left;
+}
+.demo-readiness li {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: #e8e8e4;
+}
+.demo-readiness li > svg {
+  flex: 0 0 auto;
+  color: #3f6649;
+}
+.demo-readiness li.blocked > svg {
+  color: #8a3a0d;
+}
+.demo-readiness li > span {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+.demo-readiness strong {
+  font-size: 11px;
+}
+.demo-readiness small {
+  overflow: hidden;
+  color: var(--muted);
+  font-size: 10px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
 .instrument {
   width: 76px;
   height: 76px;
@@ -635,5 +684,8 @@ code {
   }
   .run-title h1 {
     font-size: 28px;
+  }
+  .demo-readiness {
+    grid-template-columns: 1fr;
   }
 }
