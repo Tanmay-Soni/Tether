@@ -59,11 +59,13 @@ bun run --filter @tetherin/greptile test
 bun run --filter @tetherin/greptile test:fixtures
 ```
 
-The root planning baseline pins `overrides.ajv = "8.20.0"`. Keep it. Without
-that C-owned resolution, Bun installs A's AJV 8.17.1 beside B/root's 8.20.0 and
-A's strict typecheck fails at the ajv-formats boundary. The override was tested
-against A's 111 unit tests, 8 checksum-backed fixture tests, build, and 3 live
-adapter tests plus B's 11 unit and 1 fixture tests.
+After both merges, Person C changes only A's package-manifest AJV dependency
+from 8.17.1 to the shared 8.20.0 and regenerates `bun.lock`. Without alignment,
+A's strict typecheck fails at the ajv-formats boundary. Do not use a global AJV
+override: Bun supports only top-level overrides, which also replace ESLint's
+required AJV 6 and break lint. The selective package alignment passed A's 111
+unit tests, 8 checksum-backed fixture tests, build, and 3 live adapter tests plus
+B's 11 unit and 1 fixture tests.
 
 `test:live` reads immutable official provider sources and remains opt-in for the
 final product suite. It passed during planning integration. No live Greptile
@@ -73,7 +75,7 @@ available; Person C must run it during live setup.
 ## Ownership and conflicts
 
 Person A owns its provider package/fixtures/handoff. Person B owns its Greptile
-package/fixtures/handoff. Person C owns root Bun integration, AJV resolution,
+package/fixtures/handoff. Person C owns root Bun integration, AJV alignment,
 `bun.lock`, B's missing public build/import glue, application packages, and
 coordinated shared docs/contracts. Do not modify A/B algorithms to fix packaging.
 

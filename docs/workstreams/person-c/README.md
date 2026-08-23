@@ -154,11 +154,14 @@ public runtime path. Do not deep-import installer internals.
 A pins AJV 8.17.1, ajv-formats 3.0.1, YAML 2.8.1, TypeScript 5.9.2, Vitest
 3.2.4, and Node `>=22.18 <25`; it has a real build script and exports
 `dist/src/index.js`. In the isolated combined A+B worktree, a plain Bun install
-resolved two AJV versions and made A's strict typecheck, fixture compilation,
-and build fail. The C-owned root `overrides.ajv = "8.20.0"` deduplicated AJV
-without changing A source; after that resolution, A passed typecheck, 111 unit
-tests, 8 checksum-backed fixture tests, build, and all 3 opt-in live provider
-adapter tests under Bun 1.4.0. Preserve the override and frozen lock.
+resolved two AJV 8 versions and made A's strict typecheck, fixture compilation,
+and build fail. A global override is invalid because it also replaces ESLint's
+required AJV 6. Person C must make one explicit integration-only package change:
+align `packages/provider-pipeline/package.json` from AJV 8.17.1 to the shared
+AJV 8.20.0, without touching source algorithms, then regenerate the lock. That
+selective alignment preserves ESLint's isolated AJV 6 and passed A lint,
+typecheck, 111 unit tests, 8 checksum-backed fixture tests, build, and all 3
+opt-in live provider adapter tests plus B's suite under Bun 1.4.0.
 
 A's verified provider boundary is decisive for the demo:
 
@@ -690,9 +693,9 @@ Follow `docs/demo/golden-path.md`.
 ## Implementation order
 
 1. Merge and verify exact Person A commit `da15ba9`, then exact Person B commit
-   `57a602b`. Preserve the root AJV override, add only required B packaging glue,
-   pin the final dependency graph, regenerate `bun.lock`, and run both real Bun
-   suites before product work.
+   `57a602b`. Apply only the documented A package-manifest AJV alignment, add B
+   packaging glue, regenerate `bun.lock`, and run both real Bun suites before
+   product work.
 2. Implement strict config, subprocess/redaction utilities, setup checks, and
    dedicated-repository guards before any write path.
 3. Implement SQLite migrations, immutable event append, projection rebuild,

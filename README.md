@@ -131,8 +131,8 @@ bun install
 ```
 
 A and B did not commit `bun.lock`; Person C regenerates and commits the single
-root lock after merging their handoffs. The planning baseline includes a tested
-root AJV resolution pin required for their combined Bun graph.
+root lock after merging their handoffs. Person C applies the narrow, documented
+AJV package-alignment change required for their combined Bun graph.
 
 ## Configuration contract
 

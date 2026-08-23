@@ -27,7 +27,7 @@ PLANNING_BASE_SHA=13d5209ebb44fe9934d15c3508f9faa1091d60f2
 ```
 
 This base contains the definitive laptop-only runtime plan, dashboard contract,
-correct OpenAI raw digest, Bun lock, root AJV resolution, exact A/B APIs and
+correct OpenAI raw digest, Bun lock, tested AJV alignment rule, exact A/B APIs and
 limits, and verified test evidence. Person A and B are already complete; do not
 start duplicate workstreams.
 
@@ -75,9 +75,11 @@ git merge --no-ff 57a602ba9de7357fd0385f20e23460b8642b74a9
 bun install
 ```
 
-Keep root `overrides.ajv = "8.20.0"` and regenerate `bun.lock`. Without that
-C-owned resolution, Bun installs A's 8.17.1 beside B/root's 8.20.0 and A's
-strict typecheck fails. Do not edit A's algorithms or dependency declaration.
+After merging, align only A's package-manifest AJV dependency from 8.17.1 to
+8.20.0 and regenerate `bun.lock`. Without it, A's strict typecheck fails at the
+ajv-formats boundary. Do not use a global override: it also replaces ESLint's
+required AJV 6 and breaks lint. This is a C-owned integration dependency change,
+not an A source-algorithm change.
 
 Run the real post-merge checks:
 
