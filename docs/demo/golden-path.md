@@ -1,75 +1,120 @@
-# Golden-path demo and rehearsal
+# Golden-path demo and recovery runbook
 
-The demo proves one complete customer migration. It does not pretend all three
-provider adapters have run live. Stripe is preferred when Person A can produce a
-crisp official, version/deprecation-aware historical pair and a consumer sample
-that genuinely needs migration. Otherwise the exact OpenAI `geography` removal
-fixture is the deterministic fallback.
+This is a Person C implementation and rehearsal contract. Commands marked
+"target" do not exist in the planning baseline; Person C must add and test them.
 
-## Required pre-demo evidence
+## Select one real change
 
-- official old/new spec URLs, commits, licenses, and SHA-256 values;
-- oasdiff v1.29.1 checksum, command, raw breaking/changelog JSON, and manifest;
-- an authorized consumer demo repository pinned to a base SHA;
-- a live or visibly fixture Greptile mode indicator;
-- a Codex runner with no production secrets and a scoped GitHub App;
-- recorded test/typecheck commands that fail before or exercise the migration;
-- a real retained rehearsal artifact for any async fallback shown.
+Prefer Stripe only when Person A identifies an official version or deprecation
+pair that produces a compact, reproducible oasdiff result and maps cleanly to
+believable consumer code. Stripe's normal versioning model must be stated; do
+not imply an unannounced break.
 
-## Seven-minute customer narrative
+Otherwise use the proven OpenAI fixture:
 
-1. **Change detected.** Show old/new official source links and the exact semantic
-   oasdiff finding—not a prose changelog summary.
-2. **Impact identified.** Show Greptile KB context separately from confirmed
-   `rg`/AST files/symbols and explain confidence/limitations.
-3. **Codex migrates.** Open the narrow patch; show which manifest change and
-   evidence caused each edit.
-4. **Checks run.** Show real commands, exit codes, tested commit SHA, and redacted
-   output digests.
-5. **Draft PR opens.** Show upstream provenance, affected code, and test evidence
-   in the PR body. Emphasize that no merge has occurred.
-6. **Independent review.** Show the actual Greptile state/comments for the exact
-   head SHA. If Greptile finds a missed wrapper/test/downstream effect, let Codex
-   make the follow-up patch and re-run checks/review.
-7. **Human ready.** Show the composite gate: tests, deterministic coverage,
-   Greptile review, current SHA, and human approval requirement.
+```text
+old 13c6a94fca988f8be3c5de09d73f012709985d10
+new f85dbe223d40e1a31cba812ab2d755c7e98a92a3
+POST /organization/projects
+POST /organization/projects/{project_id}
+request property geography removed
+```
 
-## Honest review-loop rehearsal
+The dedicated consumer repository must contain a direct integration plus at
+least one wrapper, one test, and one downstream assumption. Those must be real
+committed files in the demo repository, not dashboard-only sample data. All
+three provider adapters receive unit and contract tests, but the presentation
+claims only this one live end-to-end run.
 
-Do not prewrite a Greptile finding or label a fixture as live. To rehearse the
-loop, use a separate fault-injection branch containing a known downstream usage
-that the first patch does not update. Run the real deterministic gate and live
-Greptile review, retain their actual timestamped outputs, and record which one
-found it. The stage presentation follows the observed result:
+## Rehearsal gates
 
-- if Greptile flags it, show the real comment/review ID and Codex follow-up;
-- if only deterministic coverage/tests flag it, say so and show that gate;
-- if the live review is unavailable, show `pending` or the clearly labeled
-  retained real rehearsal—never a simulated completed review.
+Before demo day:
 
-The final clean state must be re-reviewed at the new head SHA. A clean old review
-is not reusable.
+1. Run the selected change from a clean dedicated checkout through a real draft
+   PR, real local checks, and real Greptile review.
+2. Retain one successful run's redacted artifacts, SQLite export, source links,
+   PR URL, exact SHAs, review ID/status, and timestamps. Label it
+   `retained-real`; never copy or relabel a fixture.
+3. Use a separate fault-rehearsal branch with a known wrapper, test, or
+   downstream use omitted from the first patch. Record what actually caught it:
+   Greptile, deterministic coverage, or a test. Never prewrite a Greptile
+   comment. Re-run the final head through review and validation.
+4. Reset a separate live-demo checkout with the guarded command below. Keep the
+   retained run immutable as the asynchronous fallback.
+5. Run `bun run setup` immediately before judges arrive. Every live readiness
+   row must be green. Fixture mode is not a substitute.
 
-## Demo stop conditions
+## Exact three-minute script
 
-Stop and explain rather than papering over the system when:
+| Time | Operator action | What the judge sees and hears |
+| --- | --- | --- |
+| 0:00 to 0:20 | Start target `bun run demo:live`; open printed localhost URL. | Top bar says **LIVE**, names the exact consumer repo, and shows local preflight ready. "API providers publish changelogs. TetherIn turns official spec changes into tested customer migration PRs." |
+| 0:20 to 0:45 | Open **API Change** and start the prepared run. | Exact provider old/new commits, source links, spec hashes, oasdiff v1.29.1, raw digest, endpoint, operation ID, and normalized change. No invented summary. |
+| 0:45 to 1:15 | Advance to **Blast Radius**. | Evidence grouped as source, wrapper, tests, and downstream assumptions, each with path, symbol, reason, confidence, and Greptile or deterministic provenance. Explain that Greptile enriches context and `rg`/AST confirms source. |
+| 1:15 to 1:50 | Open **Codex Migration**. | Codex operates in a disposable checkout. Show bounded activity, changed files, focused diff, and exact checks. Say that Codex edits; Greptile independently reviews. |
+| 1:50 to 2:20 | Open **Validation & PR** and follow the real draft PR link. | PR body binds provider provenance, manifest, affected code, Codex summary, exact commands/results, Greptile state, and current head. State clearly that merge remains human-only. |
+| 2:20 to 2:45 | If live Greptile is complete, show its real review and composite gate. If still pending, use **Open retained real run**. | Pending remains visibly pending. The retained view keeps its own timestamp, PR, and SHAs. If the real rehearsal found a missed use, show the actual comment or deterministic/test failure and one bounded Codex follow-up on the new head. |
+| 2:45 to 3:00 | Return to the final gate summary. | Tests, deterministic coverage, Greptile freshness, unresolved findings, exact PR head, and **Human merge required**. Close with: "One official change, one verified customer PR, no auto-merge." |
 
-- provider bytes or oasdiff checksum differs from recorded provenance;
-- consumer authorization/base SHA cannot be proven;
-- evidence is truncated but UI claims completeness;
-- Codex changes unrelated code, weakens tests, or requires a secret;
-- checks fail or no meaningful check covers the changed behavior;
-- Greptile review is failed/stale/unavailable but UI claims validation;
-- branch push would overwrite human work.
+## Stop conditions
+
+Stop and explain the evidence instead of papering over it when:
+
+- official spec bytes, oasdiff version, or a recorded digest differs;
+- the consumer path, remote, clean base, or authorization cannot be proven;
+- deterministic analysis is truncated while the UI claims completeness;
+- Codex touches unrelated files, weakens checks, or needs a business decision;
+- tests fail, Greptile is stale, or the PR head changes;
+- a push would overwrite a human commit;
+- the only available evidence is fixture data.
+
+## Scoped recovery
+
+Person C must implement and test this target command:
+
+```bash
+bun run demo:reset -- --run <run-id>
+```
+
+It must print the resolved consumer path, expected `owner/repo`, base SHA,
+TetherIn-owned branch, PR number, and planned local actions, then require the
+operator to type the exact run ID. It must refuse this Tether repository, an
+unknown path or remote, a dirty checkout, an unowned branch, a branch with human
+commits, or any SHA mismatch. It never force pushes and never silently closes a
+PR or removes a remote branch.
+
+The safe result is:
+
+1. stopped dashboard/runner child processes and expired local lease;
+2. removed disposable worktree registered to that run only;
+3. dedicated live checkout switched to its recorded base branch and updated by
+   fast-forward only;
+4. owned local demo branch removed only when already merged or explicitly
+   confirmed and no human commit exists;
+5. the run retained in SQLite as historical evidence, with reset event and
+   artifact retention policy applied.
+
+If the guard refuses, recover manually with read-only inspection first:
+
+```bash
+git -C "$TETHERIN_CONSUMER_REPO_PATH" status --short --branch
+git -C "$TETHERIN_CONSUMER_REPO_PATH" remote get-url origin
+git -C "$TETHERIN_CONSUMER_REPO_PATH" log --oneline --decorate -8
+gh pr view <number> --repo "$TETHERIN_CONSUMER_REPO" --json isDraft,state,headRefName,headRefOid,baseRefOid,url
+```
+
+Do not use a broad cleanup command. Closing a demo PR or deleting its remote
+branch is a separate, explicit human choice after reviewing the exact PR URL.
 
 ## Positioning answers
 
-- **Why not a changelog?** A changelog informs a human; TetherIn connects the
-  exact contract change to affected customer code and a tested patch.
-- **Why not Dependabot?** A package bump changes a version; TetherIn migrates
-  behavior across wrappers, webhook payloads, transforms, tests, and downstream
-  assumptions, even when no dependency version changes.
-- **Why not auto-merge?** API behavior and business semantics require human
-  ownership. TetherIn prepares evidence; it does not take that decision away.
-- **What does a provider gain?** One official contract/migration publication can
-  fan out into correct draft PRs for consenting customers.
+- A changelog informs a human. TetherIn connects an exact contract change to
+  affected code and a tested patch.
+- Dependabot bumps a package. TetherIn migrates behavior across wrappers,
+  payload transforms, webhook handling, tests, and downstream assumptions.
+- Codex makes the change. Greptile supplies independent repository-aware review
+  evidence. oasdiff remains the contract-change authority.
+- TetherIn does not auto-merge because API behavior and business semantics still
+  require human ownership.
+- The longer-term provider opportunity is one open, provider-authored executable
+  migration protocol. The hackathon demo remains customer-focused.

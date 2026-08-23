@@ -1,458 +1,699 @@
-# Person C — integration, Codex/GitHub workflow, dashboard, and golden path
+# Person C: local product integration and golden path
 
 This is the complete work package for Person C. It requires no chat history.
+Read this file, the adjacent `AGENTS.md`, root `AGENTS.md`, and
+`../../design/dashboard.md` completely before editing.
 
 ## Mission
 
-Integrate Person A's provider/oasdiff pipeline and Person B's Greptile evidence
-pipeline into a complete TetherIn product:
+Integrate Person A's provider/oasdiff package and Person B's Greptile/evidence
+package into the full laptop-only TetherIn hackathon product:
 
-- durable idempotent workflow and audit trail;
-- authorized least-privilege GitHub App;
-- isolated Codex migration runner;
-- independent checks and diff policy;
-- draft PR lifecycle and Greptile review/follow-up loop;
-- four-stage evidence dashboard;
-- one honest end-to-end provider-to-customer golden path;
-- local/deployment runbooks and a rehearsed recovery path.
+- one Bun operator command surface;
+- a local Next.js dashboard and bounded runner;
+- durable append-only workflow evidence and projections in SQLite;
+- Codex migrations through the official local SDK in a disposable checkout;
+- safe local Git and authenticated `gh` operations against one dedicated
+  consumer repository;
+- a real draft PR, exact-head checks, Greptile review, composite validation, and
+  human-only merge;
+- one rehearsed real golden path plus a clearly labeled retained genuine run for
+  asynchronous fallback.
 
-You own the full outcome. You do not replace oasdiff, make Greptile edit code,
-let Codex approve itself, or automatically merge.
+Person C owns the glue and outcome. Do not reimplement provider diffing, impact
+analysis, Greptile transport, or validation policy. Consume the exported A/B
+interfaces and record their immutable handoff SHAs.
 
-## Prerequisites, base, and integration order
+## Explicit boundary
 
-Install Git, GitHub CLI, Node 22.18+ (Node 24 preferred), Corepack, Docker with
-Compose, PostgreSQL client tools, `jq`, and `rg`. Obtain development credentials
-through a secret manager only after fixture mode is green:
+TetherIn runs on the operator's laptop and accepts no inbound remote traffic.
+There is no customer installer, remote TetherIn service, repository-auth app,
+remote account or infrastructure surface, unattended worker fleet, or merge
+capability. External calls are limited to official provider/spec
+sources, OpenAI/Codex, Greptile, and the configured GitHub repository/PR.
 
-- a GitHub App installed on the dedicated authorized consumer demo repository;
-- `OPENAI_API_KEY` for the server-side Codex SDK runner;
-- `GREPTILE_API_KEY` and the same consumer repo enabled in Greptile;
-- KB rollout if live pre-migration KB evidence is part of the demo.
+The operator uses:
 
-Read root `AGENTS.md`, all contracts/ADRs/research/security/demo docs, A/B
-handoffs, and this directory's `AGENTS.md`. Then use exact SHAs supplied by the
-coordinator/handoff files:
+```bash
+bun install
+cp .env.example .env.local
+bun run setup
+bun run demo
+```
+
+At planning time only `verify:planning` exists. Implement every other named root
+script in this work package. Do not make documentation pass by adding no-op
+scripts or fixture-only aliases.
+
+## Prerequisites and branch
+
+Required system tools:
+
+- Bun `1.4.x` for packages, application processes, scripts, and tests;
+- Node `>=22.18 <25` only for the officially supported Codex SDK sidecar;
+- Git, GitHub CLI, `rg`, `jq`, and a SHA-256 utility;
+- an authenticated `gh` session with write access to the dedicated demo repo;
+- an absolute, separate, clean checkout of that repo;
+- OpenAI and Greptile credentials for live mode only;
+- the verified Person B handoff SHA below; Person A may still be pending.
+
+Read `../BASELINES.md`, copy `PLANNING_BASE_SHA`, and verify it is on
+`origin/main`. Person B is a concrete completed input. Fetch and prove its exact
+remote head before merging:
 
 ```bash
 git fetch origin --tags
+git cat-file -e <PLANNING_BASE_SHA>^{commit}
 git switch --detach <PLANNING_BASE_SHA>
 git switch -c person-c/integration
-test "$(git merge-base <PERSON_A_HANDOFF_SHA> <PLANNING_BASE_SHA>)" = "<PLANNING_BASE_SHA>"
-test "$(git merge-base <PERSON_B_HANDOFF_SHA> <PLANNING_BASE_SHA>)" = "<PLANNING_BASE_SHA>"
-git merge --no-ff <PERSON_A_HANDOFF_SHA>
-corepack enable
-corepack prepare pnpm@11.23.0 --activate
-pnpm install --lockfile=false
-pnpm --filter @tetherin/provider-pipeline test
-git merge --no-ff <PERSON_B_HANDOFF_SHA>
-pnpm install --lockfile=false
-pnpm --filter @tetherin/greptile test
+
+git fetch origin person-b/greptile-evidence
+test "$(git rev-parse origin/person-b/greptile-evidence)" = "57a602ba9de7357fd0385f20e23460b8642b74a9"
+git merge --no-ff 57a602ba9de7357fd0385f20e23460b8642b74a9
+bun install
+bun run --filter @tetherin/greptile test
+bun run --filter @tetherin/greptile test:fixtures
 ```
 
-Stop if either handoff modifies files outside its documented ownership, changes a
-shared schema without coordination, commits a lockfile/secret/full provider
-spec, implements a custom diff, or fabricates live Greptile evidence. Resolve the
-boundary before application work.
+Person A is independent and may not yet have a remote handoff. Begin C scaffolding
+with the checked-in `contracts/examples/openai-geography.manifest.json`; label it
+fixture input. Once the coordinator supplies A's immutable SHA, fetch it, verify
+its branch head, merge it with `--no-ff`, run A's actual Bun acceptance commands,
+and replace fixture plumbing with its public provider API. Do not choose a local
+or ambiguous A commit. Final live completion still requires A.
 
-## Owned runtime layout and pinned planning anchors
+Inspect both handoff notes and confirm ownership, schema versions, dependency
+licenses, fixture/live labels, test results, and limitations. If A changes a
+shared contract without a versioned proposal, stop with a concrete integration
+blocker. Do not substitute a local stub and call it done.
 
-Create:
+## Verified completed Person B input
+
+Remote inspection on 2026-08-23 found exactly one non-main implementation branch
+and no open or closed PR:
 
 ```text
-apps/web/                         Next.js dashboard/API routes
-packages/contracts/              Generated TS types + AJV validators
-packages/db/                     Drizzle schema/migrations/repositories
-packages/orchestrator/           State machine, worker, artifact/audit services
-packages/github/                 App auth, webhooks, checkout/branch/PR/checks
-packages/codex/                  Isolated @openai/codex-sdk migration adapter
-.github/workflows/               CI only; no hidden migration orchestrator
-Dockerfile
-compose.yaml                     Web + worker + local Postgres
-docs/runbooks/{local,deployment,recovery}.md
-docs/demo/REHEARSAL.md
-docs/workstreams/person-c/HANDOFF.md
-pnpm-lock.yaml
+branch  origin/person-b/greptile-evidence
+head    57a602ba9de7357fd0385f20e23460b8642b74a9
+commit  feat(greptile): implement evidence adapter
+base    37472c40de06251bf5a49b53239f912471a9b8f9
 ```
 
-Use strict TypeScript, Next.js App Router, React, PostgreSQL, Drizzle ORM,
-`postgres`, Octokit App/Webhooks, AJV, Vitest, and Playwright. Pin exact versions
-and commit one lockfile. Versions observed at planning time (reverify once, then
-pin; never float during rehearsal):
+The commit adds only `packages/greptile/**`, `fixtures/greptile/**`, and
+`docs/workstreams/person-b/HANDOFF.md`. Merge the exact commit, never a moving
+branch name alone, and do not rewrite its algorithms.
 
-```text
-next 16.3.2                  react 19.2.8
-drizzle-orm 0.45.2           postgres 3.4.9
-@octokit/app 16.1.4          @octokit/webhooks 14.2.0
-@openai/codex-sdk 0.149.0    ajv 8.20.0
-typescript 7.0.2             vitest 4.1.11
-playwright 1.62.1            pnpm 11.23.0
-```
-
-If a version no longer resolves or violates an engine/peer constraint, choose
-the nearest compatible stable version, pin it, record the reason/source in the
-handoff, and rerun all tests. Do not silently use prerelease/canary tags.
-
-## Generated contract package
-
-`packages/contracts` reads the checked-in Draft 2020-12 schemas, compiles AJV
-validators at build time, and exports generated TypeScript types plus:
+The real public entry point exports:
 
 ```ts
-parseMigrationManifest(value: unknown): MigrationManifest;
-parseBlastRadiusReport(value: unknown): BlastRadiusReport;
-parseValidationReport(value: unknown): ValidationReport;
-parseWorkflowEvent(value: unknown): WorkflowEvent;
-canonicalJson(value: unknown): string;
-sha256Canonical(value: unknown): string;
+import {
+  createGreptileEvidenceAdapter,
+  createCodeValidationGate,
+  FixtureGreptileTransport,
+  GreptileAdapterError,
+  buildLiteralQueries,
+  sdkMethodCandidates,
+  type AuthorizedConsumerRevision,
+  type CheckResult,
+  type CodeValidationGate,
+  type ConfirmedGreptileTool,
+  type CoverageResult,
+  type GateOptions,
+  type GreptileEvidenceAdapter,
+  type GreptileOptions,
+  type GreptileTransport,
+  type PullRequestRevision,
+  type ReviewComment,
+  type ReviewEvidence,
+  type ReviewHandle,
+} from "@tetherin/greptile";
 ```
 
-Generation must be deterministic and CI must fail if generated files differ.
-Every DB/external/package boundary parses `unknown`. A coordinated schema change
-requires a new `schemaVersion`, fixtures, generators, A/B adapter changes, DB
-migration/backward-read policy, and ADR; never patch a v1 schema in place after
-data exists.
+Invoke it with the exact implemented signatures:
 
-## Persistence model
+```ts
+const greptile = createGreptileEvidenceAdapter({
+  apiKeyEnv: "GREPTILE_API_KEY",
+  endpoint: "https://api.greptile.com/mcp",
+  maxPollMs: 8 * 60_000,
+});
 
-Use PostgreSQL as the durable source of truth and a transactional outbox/leased
-worker instead of adding Redis for the hackathon. Required tables:
+const blastRadiusUnknown = await greptile.enrichBlastRadius({
+  manifest,
+  consumer: {
+    repository: configuredOwnerRepo,
+    defaultBranch: configuredBaseBranch,
+    baseSha: frozenConsumerBaseSha,
+    authorizedAt: runCreatedAt,
+  },
+  checkoutPath: readOnlyConsumerCheckout,
+  executionMode,
+  signal,
+});
+// Validate/canonicalize tetherin.blast-radius-report/v1 before persistence.
+
+const reviewHandle = await greptile.triggerReview({
+  repository: configuredOwnerRepo,
+  defaultBranch: configuredBaseBranch,
+  prNumber,
+  branch: migrationBranch,
+  expectedHeadSha: currentPrHeadSha,
+  executionMode,
+});
+// Persist reviewHandle before polling.
+
+const review = await greptile.awaitReview({
+  handle: reviewHandle,
+  readCurrentHead: () => githubCli.readPullRequestHead(prNumber),
+  signal,
+});
+
+const validationUnknown = createCodeValidationGate().evaluate({
+  manifestId,
+  pullRequest: exactDraftPullRequestRevision,
+  executionMode,
+  checks: exactHeadCheckResults,
+  coverage: coverageAccounting,
+  greptile: review,
+});
+// Validate/canonicalize tetherin.validation-report/v1 before persistence.
+```
+
+The concrete package pins MCP SDK `1.30.0`, AJV `8.20.0`, ajv-formats `3.0.1`,
+TypeScript `5.9.3`, Vitest `4.1.11`, Prettier `3.9.6`, and Node types `24.10.1`.
+Its handoff reports 3 test files and 11 tests passing under Node 24 with its old
+lockless package-manager command surface. No live Greptile smoke ran because the
+environment lacked a key, authorized demo PR, and confirmed KB rollout.
+
+Person C must close two local integration gaps without changing B's evidence or
+gate logic:
+
+1. Re-run B under the new Bun workspace and final `bun.lock`. Its package export
+   points to `dist/index.js` but defines no build script. Add a C-owned runtime
+   adapter or root build step that compiles the exact B source and tests the
+   public package import; do not patch algorithms or import private modules.
+2. Run a Bun compatibility smoke for the MCP transport and Node built-ins. If
+   Bun cannot run the exact public adapter, host it in a separate C-owned local
+   Node 22 sidecar with a typed, secret-safe protocol. Keep Bun as the operator
+   entry and do not combine the Greptile key with the Codex sidecar.
+
+Preserve B's documented limits in state and UI: KB search is literal substring
+search over synthesized untrusted Markdown; rollout/repository visibility can be
+missing; AST confirmation is JavaScript/TypeScript only; quotas are unpublished;
+responses do not always contain a structured reviewed commit SHA; freshness is
+an unchanged-head plus `hasNewCommitsSinceReview === false` inference; fixture
+mode never passes; and live behavior remains unverified until Person C runs it.
+
+## Ownership and required layout
+
+Person C may create or change shared/root integration files after merging A and
+B. Preserve their package behavior and focused tests.
 
 ```text
-github_installations
-  id, account_login, encrypted_installation_metadata, permissions_json, created_at
-consumer_repositories
-  github_node_id UNIQUE, installation_id, owner, name, default_branch,
-  enabled, authorized_at, test_commands_json, retention_policy_json
-provider_checkpoints
-  provider PRIMARY KEY, last_commit, checked_at
-migration_jobs
-  id UUID, idempotency_key UNIQUE, provider, old_commit, new_commit,
-  consumer_repository_id, consumer_base_sha, state, attempt, lease_owner,
-  lease_expires_at, next_run_at, created_at, updated_at
-artifacts
-  id, job_id, kind, schema_version, sha256, storage_key, execution_mode,
-  redacted_summary_json, created_at
-external_runs
-  id, job_id, kind, external_id, status, expected_head_sha, attempts,
-  next_poll_at, safe_metadata_json, created_at, updated_at
-pull_requests
-  job_id UNIQUE, number, url, branch, base_sha, head_sha, draft, updated_at
-job_events
-  job_id, sequence, event_id UNIQUE, type, actor, occurred_at,
-  payload_digest, safe_payload_json, PRIMARY KEY(job_id, sequence)
-outbox
-  id, job_id, event_type, available_at, lease fields, attempts, delivered_at
+apps/web/
+  app/{layout,page,runs/[runId]/page,diagnostics/page}.tsx
+  app/api/{preflight,runs,runs/[runId],runs/[runId]/events,runs/[runId]/actions}/**
+  components/**
+  styles/{tokens,globals,patterns}.css
+  tests/**
+apps/runner/
+  src/{main,supervisor,worker}.ts
+  test/**
+packages/orchestrator/
+  src/{state-machine,actions,idempotency,leases,receipts}.ts
+  test/**
+packages/local-state/
+  src/{database,migrate,events,projections,artifacts}.ts
+  migrations/*.sql
+  test/**
+packages/codex-runner/
+  src/{client,protocol,prompt,policy,diff-inspector,redaction}.ts
+  sidecar/{main,adapter}.ts
+  test/**
+packages/git-local/
+  src/{repository,branch,worktree,commands,guards}.ts
+  test/**
+packages/github-cli/
+  src/{auth,repository,pull-request,checks,commands}.ts
+  test/**
+packages/greptile-runtime/       C-owned public-import/build or sidecar glue only
+  src/**
+  test/**
+packages/config/
+  src/{load,schema,redaction}.ts
+  test/**
+scripts/{setup,demo,demo-reset}.ts
+docs/runbooks/local-demo.md
+docs/workstreams/person-c/HANDOFF.md
+bun.lock
 ```
 
-Encrypt any installation metadata that cannot be recomputed; never store App
-private key, webhook secret, OpenAI key, Greptile key, GitHub tokens, raw model
-transcripts, full customer source, or full KB documents. Store artifacts in a
-job/tenant-scoped local directory for dev and an interface-backed object store
-for deployment. Specs are public content-addressed cache; consumer artifacts are
-encrypted/private with retention deletion.
+Root `package.json` is the only public command surface. Person C owns its final
+scripts and workspaces, the final lock, TypeScript/lint/format/test configuration,
+and coordinated schema versions if an accepted A/B proposal requires one.
 
-The idempotency key is SHA-256 over length-prefixed provider, old/new spec commit,
-consumer GitHub node ID, and consumer base SHA. Add a unique constraint and a
-per-consumer advisory lock around branch/PR mutation. Outbox insert and state
-transition occur in one transaction.
+## Stack decision and pins
 
-## State machine and worker contract
-
-Implement exactly the states/transitions in `docs/architecture/overview.md`.
-Handlers are short, idempotent steps; no HTTP request waits for oasdiff, Codex,
-tests, or Greptile. Each handler:
-
-1. acquires a lease with expiration;
-2. reloads current state and returns if already completed;
-3. persists any external ID before waiting/polling;
-4. writes artifact/event/next state atomically;
-5. classifies retryable vs permanent/needs-input errors;
-6. releases lease or lets it expire safely after a crash.
-
-Use exponential backoff with jitter and per-step caps. Never retry auth,
-authorization, checksum, schema, unsupported-provider, unsafe-diff, or branch
-ownership failures automatically. Poll Greptile asynchronously using Person B's
-review handle; no invented Greptile webhook. GitHub webhook events may enqueue a
-wake-up but cannot mark review complete.
-
-Required workflow events use `contracts/workflow-event.schema.json`. Event
-payloads contain IDs/hashes/statuses/reason codes and redacted excerpts only.
-
-## GitHub App and repository workflow
-
-Create a GitHub App manifest/runbook with the least permissions actually used:
-
-- Metadata: read (implicit)
-- Contents: read/write (exact checkout/branch commit)
-- Pull requests: read/write (draft PR lifecycle)
-- Checks: read (and write only if TetherIn publishes its own check run)
-- Actions: read only if collecting workflow runs
-- Commit statuses: read only if required by enrolled repo policy
-
-Do not request Administration, Members, Secrets, Environments, or repository
-merge capability. Subscribe only to installation/repository selection,
-pull-request, push, and selected check/workflow events the implementation uses.
-Verify webhook HMAC on raw bytes, delivery ID uniqueness, event/action allowlist,
-installation/repository node IDs, replay age, and payload size before enqueue.
-
-For each job:
-
-1. mint a short-lived installation token restricted to one authorized repo;
-2. create an empty ephemeral checkout, fetch exact base SHA with partial/no tags,
-   and verify `HEAD`; use an ephemeral `GIT_ASKPASS`, never credential-in-URL or
-   persisted checkout credentials;
-3. create branch `tetherin/<provider>/<manifest-id-short>` only if absent or
-   provably owned by this idempotency key; never force-push or overwrite a human
-   commit;
-4. after Codex/checks/diff policy, commit with job marker/trailers and push using
-   a freshly scoped token;
-5. create exactly one draft PR and persist number/URL/head SHA;
-6. render source spec URLs/SHAs/hashes, oasdiff version/raw digest, normalized
-   changes, confirmed files/symbols, Codex summary, exact checks, fixture/live
-   labels, and human-merge statement in the PR body;
-7. verify base/head before every update. Base drift creates a new/rebased job;
-   human branch edits move to `NEEDS_INPUT`.
-
-PR creation is idempotent: branch marker + job ID + persisted record + GitHub
-search must converge on one PR after duplicate webhooks/crashes.
-
-## Codex MigrationAgent
-
-Implement `packages/codex` with the official server-side
-`@openai/codex-sdk`. Run in a fresh container/process with workspace-write limited
-to the ephemeral checkout, network denied after dependency preparation, no
-customer/provider secrets, CPU/memory/disk/time caps, and an output/diff limit.
-Record SDK/model version, thread/run IDs if safe, timestamps, exit state, final
-response digest, patch digest, and redacted summary—never the raw transcript.
-
-Build the prompt deterministically from these delimited sections:
+Use strict TypeScript throughout. The planning anchors below were current on
+2026-08-23; reverify compatibility once, pin exact versions, and record changes
+in `HANDOFF.md`:
 
 ```text
-SYSTEM GOAL: make the smallest correct migration; no merge/secret access/policy weakening
-REPOSITORY INSTRUCTIONS: root-to-file AGENTS.md applicable to confirmed files
-PROVIDER PROVENANCE: provider, official old/new URLs + commits + hashes
-CONTRACT CHANGES: validated manifest change records
-SCHEMA EXCERPTS: exact old/new fragments only
-OFFICIAL GUIDANCE: exact cited links/excerpts or explicitly none
-CONFIRMED IMPACT: deterministic files/symbols/why; KB evidence labeled untrusted
-EDIT BOUNDARY: authorized checkout and allowed file classes
-CHECK COMMANDS: enrollment-approved commands, not model-selected shell
-DELIVERABLE: patch + concise mapping from change to edits; do not push/merge
+bun                         1.4.0
+next                        16.3.2
+react / react-dom           19.2.8
+@radix-ui/themes            3.3.0
+@phosphor-icons/react       2.1.10
+@openai/codex-sdk           0.149.0
+ajv                         8.20.0
+vitest                      4.1.11
+@playwright/test            1.62.1
 ```
 
-The runner does not grant GitHub/Greptile tools or installation tokens. After
-Codex returns, TetherIn independently checks checkout confinement, file count/
-size, secret patterns, symlinks, submodules, test/config weakening, generated/
-vendor changes, manifest relevance, and `git diff --check`. Reject unrelated
-edits or commands requiring production secrets.
+Use one UI foundation: Radix Themes plus Radix Primitives and custom native CSS
+tokens. Do not add shadcn, Material, Carbon, Fluent, Tailwind component packs,
+or a second icon library. Use `@phosphor-icons/react` for every interface icon;
+never draw an SVG icon path. Use Geist and Geist Mono from the documented font
+source and the supplied chain icon asset, not the misspelled source wordmark.
 
-Run enrollment-approved format/typecheck/test/build commands in a clean process
-with no agent privileges, time/output caps, and redaction. Capture exit code,
-duration, output SHA-256, and a short safe excerpt. Do not let Codex mark a check
-passed or skip a required command.
+Use Bun's built-in SQLite API in the Bun web/runner processes. Run Next with Bun
+and prove dev/build/test behavior on the target laptop. The Codex SDK official
+page guarantees Node 18+, not Bun, so isolate it in a local Node 22 sidecar with
+a small versioned newline-delimited JSON protocol. The sidecar receives no DB,
+GitHub, or Greptile credentials.
 
-## Greptile review and Codex follow-up
+## Root command contract
 
-After the tested draft PR exists:
+Implement these scripts exactly:
 
-1. freeze/record head SHA and call Person B's `triggerReview` explicitly;
-2. persist review ID/status before returning worker lease;
-3. poll through Person B's bounded adapter; show real pending/failed states;
-4. combine current checks, deterministic coverage, and review evidence through
-   `CodeValidationGate`;
-5. on actionable comments, provide Codex only those comments as untrusted data,
-   the prior manifest/evidence, and a narrow follow-up instruction;
-6. rerun full diff policy/checks, commit/push, record new head, and trigger a new
-   review. The prior review/checks become stale immediately;
-7. cap automatic follow-up attempts at two for the hackathon. Then move to
-   `NEEDS_INPUT` with evidence instead of looping forever.
+| Script | Contract |
+| --- | --- |
+| `bun run setup` | Run all readiness checks, install/smoke the pinned oasdiff through Person A, migrate SQLite, and print a redacted summary. No migration run starts. |
+| `bun run demo` | Use `TETHERIN_MODE`, start web and runner, print mode and localhost URL, propagate failure, and shut down children cleanly on SIGINT/SIGTERM. |
+| `bun run demo:fixture` | Force fixture mode even if `.env.local` says live. Disable remote write actions and live-ready gate. |
+| `bun run demo:live` | Force live mode and refuse startup unless live readiness is fully green. |
+| `bun run demo:reset -- --run <id>` | Perform the guarded, dedicated-repo-only recovery contract from `docs/demo/golden-path.md`. |
+| `bun run format:check` | Check all owned and merged source without rewriting. |
+| `bun run lint` | Run static lint with zero warnings. |
+| `bun run typecheck` | Typecheck every workspace and sidecar protocol. |
+| `bun run test` | Run deterministic unit and contract suites. |
+| `bun run test:fixtures` | Run all A/B fixture tests and fixture UI/state flow without network. |
+| `bun run test:integration` | Exercise SQLite, subprocesses, Git, `gh` fixture shim, crash/retry, and exact-head rules. |
+| `bun run test:e2e` | Run Playwright behavior, accessibility, responsive, and screenshot checks. |
+| `bun run build` | Create a local release build of web and runner. |
 
-Do not auto-resolve Greptile comments. Do not require Greptile confidence alone;
-require completed/current review and zero unaddressed comments. A fixture review
-can exercise UI/state logic but cannot enter live `READY_FOR_HUMAN`.
+The final `bun run demo` command is a supervisor, not two manual terminal steps.
+It uses process groups, waits until both child readiness endpoints succeed,
+prints one URL, and forwards shutdown with a bounded grace period before kill.
 
-## Dashboard and API
+## Configuration and setup readiness
 
-Build a focused customer dashboard, not an admin-template sprawl. The job page
-has four ordered stages with timestamps/status/live-fixture badges:
+Load only ignored `.env.local`, validate with one strict schema, and reject
+unknown security-sensitive keys. Required fields are those in `.env.example`.
+Never add a GitHub token field. Resolve every configured local path to an
+absolute canonical path before use.
 
-1. **Provider change detected** — official old/new links and SHAs, oasdiff
-   severity/text, raw/manifest digests.
-2. **Affected consumers and files** — authorized repo/base, Greptile KB
-   availability/versions/limitations, deterministic file/symbol/why/confidence.
-3. **Codex migration** — branch/head, compact diff summary, change-to-edit map,
-   check commands/states.
-4. **Tests + Greptile + PR ready** — check evidence, review status/comments/head
-   freshness, composite gate reasons, draft PR link, human approval requirement.
+`bun run setup` must perform the following in order and return nonzero on any
+required live failure:
 
-Never render untrusted Markdown/HTML directly. Escape/sanitize provider,
-Greptile, Codex, test, and GitHub content. No client bundle receives integration
-keys or private source excerpts.
+1. Verify supported Bun and Node versions plus executable Git, `rg`, `jq`, `gh`,
+   and SHA-256 utility. Print versions, never environment contents.
+2. Validate base URL binds to loopback only; SQLite and run directories resolve
+   below `.tetherin/`; create directories mode `0700` and DB mode `0600`.
+3. Confirm mode. Fixture mode reports missing OpenAI/Greptile keys as expected;
+   live mode checks presence without printing length, prefix, or value.
+4. Invoke Person A's installer API for exact `OASDIFF_VERSION`, verify archive
+   hash and `oasdiff --version`, then run its committed smoke fixture.
+5. Open SQLite, enable foreign keys and WAL, apply idempotent migrations, verify
+   schema version, append/read a temporary setup event in a rollback transaction,
+   and confirm a second process can read.
+6. Canonicalize `TETHERIN_CONSUMER_REPO_PATH`. Reject this repository, its parent
+   or child, a symlink escape, non-Git path, dirty worktree, wrong base branch,
+   missing origin, or origin that does not normalize to `TETHERIN_CONSUMER_REPO`.
+7. Run `gh auth status`, obtain authentication only through a scrubbed
+   `gh auth token` child process, then use `gh repo view` to verify exact repo,
+   default branch, and push/PR access. Discard the token immediately.
+8. In live mode, run a bounded no-write Codex SDK sidecar smoke in an empty temp
+   repository and call Person B's read-only Greptile KB discovery for the exact
+   configured repo. A missing Greptile KB is a visible degraded condition, not a
+   mock; inability to review the PR makes live readiness fail.
+9. Print and persist a readiness report with rows `PASS`, `DEGRADED`, `FIXTURE`,
+   or `FAIL`, safe detail, checked time, and relevant version/digest. Print no
+   token, secret, absolute home path, or raw response body.
 
-Required server routes/actions:
+The diagnostics screen renders this same report and offers copy-safe redacted
+diagnostics. It is local preflight only.
+
+## SQLite source of truth
+
+Use migrations and typed repositories for at least these tables:
 
 ```text
-POST /api/github/webhook             verified enqueue only; fast 2xx
-GET  /api/jobs/:jobId                authorized redacted job projection
-POST /api/jobs/:jobId/retry          CSRF/auth + allowed-state transition
-POST /api/demo/run                   development-only fixture or authorized demo
-GET  /api/artifacts/:artifactId      authorized redacted/download policy
+schema_migrations(version PK, checksum, applied_at)
+runs(id PK, idempotency_key UNIQUE, mode, evidence_origin, provider, state,
+     manifest_id, consumer_repo, consumer_base_sha, branch_name, pr_number,
+     pr_url, current_head_sha, created_at, updated_at, terminal_reason)
+workflow_events(event_id PK, job_id FK, idempotency_key, sequence,
+                type, occurred_at, actor, causation_event_id, correlation_id,
+                payload_digest, payload_json,
+                UNIQUE(job_id, sequence), UNIQUE(job_id, payload_digest, type))
+action_intents(id PK, run_id FK, intent_key UNIQUE, type, expected_state,
+               expected_head_sha, status, lease_owner, lease_expires_at,
+               attempts, created_at, updated_at, last_error_code)
+external_receipts(id PK, run_id FK, effect_key UNIQUE, kind, external_id,
+                  request_digest, response_digest, bound_head_sha, created_at)
+artifacts(id PK, run_id FK, kind, relative_path, sha256, bytes, media_type,
+          evidence_origin, bound_head_sha, created_at,
+          UNIQUE(run_id, kind, sha256))
+stage_projections(run_id FK, stage, status, summary_json, updated_at,
+                  PRIMARY KEY(run_id, stage))
 ```
 
-Use server-sent events or bounded polling for dashboard updates; do not couple UI
-requests to worker execution. Add an install/onboarding screen that states what
-source/context goes to Codex/Greptile, selected-repo access, fixture meaning,
-retention, no secrets, and no auto-merge.
+`workflow_events` payloads validate against
+`tetherin.workflow-event/v1` before insertion. Add SQLite triggers that reject
+event update/delete. A state transition appends the event and updates projections
+in one transaction. Rebuild all projections from events in a test and compare
+byte-for-byte canonical JSON with the stored result.
 
-## Golden path and provider boundary
+Retain event metadata indefinitely for the demo repo. Apply
+`TETHERIN_RETENTION_DAYS` only to eligible redacted artifact bodies after
+recording a purge event; never silently delete exact source URLs, hashes, state,
+PR identity, or human-approval requirement.
 
-Deliver one indisputable E2E path. Attempt the Person A Stripe fixture first only
-if it is an official historical pair representing a real version/deprecation
-migration and the consumer sample demonstrably uses the affected behavior.
-Stripe's versioning means copy must say TetherIn prepares an upgrade migration,
-not that Stripe silently broke customers.
+## State machine and actions
 
-If Stripe misses that rubric, use the official OpenAI pair:
+Implement the enum and transition graph in `docs/architecture/overview.md` as a
+pure exhaustive reducer. No UI component may invent a state. Required linear
+path:
 
 ```text
-old 13c6a94fca988f8be3c5de09d73f012709985d10
-new f85dbe223d40e1a31cba812ab2d755c7e98a92a3
-removed geography from create-project and modify-project requests
+READY -> DETECTING_CHANGE -> CHANGE_DETECTED -> CALCULATING_IMPACT
+-> IMPACT_CONFIRMED -> MIGRATING -> TESTING -> CREATING_PR
+-> GREPTILE_REVIEW -> VALIDATING -> PR_READY
 ```
 
-The consumer demo repo must contain a realistic integration plus wrapper/test or
-downstream assumption. All three adapters still require unit/contract coverage;
-do not fabricate live E2E runs for the other two.
+Required honest alternatives are `TESTS_FAILED`, `GREPTILE_PENDING`,
+`GREPTILE_BLOCKED`, `NEEDS_INPUT`, and `FAILED`. `PR_READY` requires live mode,
+the Person B gate pass, exact current head, and `humanApprovalRequired: true`.
+Fixture completion has its own summary but never uses live `PR_READY`.
 
-Follow `docs/demo/golden-path.md`. Rehearse a separate fault-injection branch and
-record what the real deterministic gate and live Greptile review actually found.
-If Greptile is unavailable/asynchronous, show pending/degraded or a visibly
-labeled retained real rehearsal. Never pre-script a false finding.
+UI actions post an `intentKey`, expected state, and expected head. The server
+validates the action/state pair and inserts one unique intent. Disable the button
+immediately, but treat DB uniqueness as the correctness control. The local
+worker leases one intent at a time with owner UUID and short expiry, heartbeats
+only while active, and resumes an expired intent by reconciling receipts and
+GitHub state before repeating any side effect.
 
-## Implementation phases
+Required action policy:
 
-### 1. Integrate and lock
+| Action | Allowed state | Result |
+| --- | --- | --- |
+| `START_RUN` | `READY` | Begin provider detection once. |
+| `RETRY_IMPACT` | `NEEDS_INPUT` only after operator-supplied safe correction | Re-enter impact with new causation event. |
+| `RUN_MIGRATION` | `IMPACT_CONFIRMED` | Start the first Codex pass. |
+| `RETRY_CHECKS` | `TESTS_FAILED` when no source change occurred | Re-run exact allowlisted checks on same head. |
+| `RUN_FOLLOWUP` | `GREPTILE_BLOCKED`, first follow-up only | New Codex pass, new head, invalidate old checks/review. |
+| `RESUME_REVIEW` | `GREPTILE_PENDING` on unchanged head | Resume same persisted Greptile review handle. |
+| `CREATE_OR_OPEN_PR` | checks passed, exact head, no conflicting receipt | Create once or navigate to existing draft. |
 
-- Merge A then B, run each acceptance suite, review handoffs and source licenses.
-- Create root scripts/config, generate one lockfile, pin action/dependencies, add
-  CI for format/lint/typecheck/unit/fixture/integration/build.
-- Generate contract types/validators and add drift checks.
+`OPEN_RETAINED_FALLBACK` is a read-only navigation action and never alters the
+active live run.
 
-### 2. Persistence and orchestration
+## Person A and Person B integration
 
-- Implement DB schema/migrations/repositories, artifact store, encrypted safe
-  metadata, events/outbox, leases/backoff/idempotency, and state-transition tests.
-- Wire A manifest output -> B impact report -> Codex -> checks -> GitHub -> B
-  review/report without bypassing schema validation.
+Validate all A/B outputs again at the boundary even if their packages already
+validated them. Persist contract version and digest.
 
-### 3. GitHub and Codex security boundary
+1. Call Person A with provider, exact old/new revision, and abort signal. Persist
+   raw oasdiff artifact before accepting the normalized manifest.
+2. Require official source URL, 40-character commits, spec hashes, oasdiff
+   version/raw digest, exact schema excerpts, and supported provider enum.
+3. Call Person B against the frozen consumer base in `live` or `fixture` mode.
+   Persist KB availability, truncation, limitations, deterministic coverage,
+   every candidate's file/symbol/reason/confidence/confirmation, and report hash.
+4. A KB miss or unavailable rollout never becomes proof of no impact. Continue
+   only when deterministic confirmation is sufficient and render the degraded
+   limitation.
+5. After draft PR creation, persist the Greptile review handle before polling.
+   Respect Person B's bounded polling, resume the same handle, and never invent
+   a completion callback.
+6. Supply current head through the B adapter's callback. Treat review freshness
+   as Person B's documented unchanged-head inference, not a guaranteed upstream
+   commit field.
+7. Evaluate the Person B validation gate only after rereading PR head/base and
+   required checks. Persist the v1 report and reasons verbatim.
 
-- Implement App auth/webhook/repo authorization/ephemeral checkout/branch/PR.
-- Implement SDK runner, prompt builder, sandbox, redaction, diff policy, check
-  runner, and follow-up invalidation.
+## Codex migration runner
 
-### 4. Dashboard
+The Bun adapter starts a Node sidecar in a scrubbed environment. Protocol input
+includes run/thread ID, canonical checkout root, manifest/report digests, bounded
+prompt, model pin, deadline, allowed paths, and allowed command arrays. Protocol
+output includes SDK thread ID, final response digest/redacted summary, command
+receipts, and typed exit status. Reject unknown fields in both directions.
 
-- Implement onboarding, job list/detail four stages, evidence/limitation views,
-  retry controls, accessible responsive design, and safe rendering.
+Before invoking Codex:
 
-### 5. Golden path and deployment
+- create a disposable worktree below the run directory at exact consumer base;
+- exclude `.git` indirection, `.env*`, credentials, caches, generated output,
+  dependencies, and files outside confirmed impact plus necessary repo
+  instructions;
+- render manifest, exact schema excerpts, provider guidance, Greptile context,
+  deterministic evidence, repository instructions, and check commands in
+  clearly delimited sections;
+- tell Codex to make the smallest compatible patch, update focused tests, avoid
+  business decisions, and never disable or skip a check;
+- enforce configurable caps with conservative defaults: 12 minutes, 40 files
+  inspected, 12 files changed, 500 changed lines, 8 commands, 2 MiB captured
+  output, one initial pass and one follow-up.
 
-- Add dedicated consumer demo repo fixture/seed instructions, run E2E, create
-  real draft PR in an authorized demo repo, collect real review if credentials
-  allow, and retain redacted evidence.
-- Add Docker/Compose local flow, production config/runbook, health/readiness,
-  migrations, backup/restore, observability, rollback, and recovery demo.
+Afterward, inspect `git diff --binary --no-ext-diff` and reject path escape,
+symlink change, secret file, submodule, binary addition, test/config weakening,
+lockfile churn unrelated to the migration, or limits exceeded. Store a redacted
+diff artifact and digest. A required business-semantic decision becomes
+`NEEDS_INPUT`; do not prompt Codex to guess.
 
-## Required failure-path tests
+## Tests and exact-head binding
 
-In addition to A/B suites, cover:
+Derive required commands from the dedicated consumer repository instructions,
+then apply a checked-in demo allowlist. Spawn argument arrays without a shell,
+with clean environment, timeout, output cap, and process-group cleanup. Do not
+allow network-bearing package install during the migration run.
 
-- duplicate/out-of-order/replayed webhook, bad signature, wrong installation/
-  repo, permission drift, token expiry, base advance, branch collision, human
-  branch edit, existing PR convergence, GitHub 403/404/409/422/429/5xx;
-- duplicate job event/outbox delivery, crash after external call before state
-  write, lease expiry, concurrent same-consumer jobs, retry cap, DB/artifact
-  failure, migration rollback, retention deletion;
-- Codex timeout/crash/oversized output, path/symlink/submodule escape, secret
-  canary, prompt injection, network attempt, unrelated files, test disablement,
-  generated/vendor changes, empty patch, check timeout/failure/redaction;
-- fixture cannot produce live-ready, KB unavailable/truncated, no impact, review
-  pending/failed/skipped/stale, unaddressed comment, follow-up new head, maximum
-  iterations, missing head proof, gate schema failure;
-- dashboard XSS from provider/KB/comment/test text, unauthorized job/artifact
-  access, CSRF on mutation, key absent from client bundle/logs;
-- full fixture E2E and one authorized live/rehearsal path with exact provenance.
+Store command array, cwd relative to consumer root, status, exit code, duration,
+redacted excerpt, output digest, and tested head SHA. Required check failure
+enters `TESTS_FAILED`. Skipping a required check is not pass. Any source change
+after checks invalidates the full check set.
+
+## Git and GitHub workflow
+
+All repository mutations occur in the dedicated consumer worktree. Wrap Git and
+`gh` with argument-array subprocess helpers and typed JSON parsing.
+
+1. Revalidate canonical path, expected remote, clean base, and exact base SHA.
+2. Create `tetherin/<provider>/<manifest-short-id>`, sanitized and bounded to 80
+   characters. Store run and manifest markers in the commit message and PR body.
+3. Commit only the inspected patch. Reread the commit tree and head SHA.
+4. Before push, query remote branch. Create it only when absent; reuse only when
+   its marker and expected head match the same run. Never force or rewrite.
+5. Push with `git push --set-upstream origin <branch>`. If a concurrent update
+   wins, stop with `NEEDS_INPUT`.
+6. Look up a PR by exact repo, branch, base, and marker. If none exists, run
+   `gh pr create --draft --repo <owner/repo> --base <base> --head <branch>
+   --title <title> --body-file <redacted-file>`. Persist the receipt before any
+   retry. If one exists, validate ownership and update only the owned evidence
+   section through `gh pr edit`.
+7. Read PR base/head/draft/url and check rollup with `gh ... --json`. Never parse
+   human terminal formatting. Never invoke `gh pr merge` or delete a branch.
+
+The PR body must contain:
+
+- `LIVE`, `FIXTURE`, or `RETAINED REAL` origin at the top;
+- provider, official URLs, old/new source SHAs, spec hashes, oasdiff version,
+  raw digest, and manifest ID/digest;
+- normalized endpoint/operation/schema/property/type change and severity;
+- confirmed source/wrapper/test/downstream evidence with limitations;
+- Codex thread/run summary and focused changed-file list;
+- exact check commands, status, output digest, and tested head;
+- Greptile review ID/status, freshness explanation, unaddressed findings, and
+  reviewed head binding;
+- composite gate decision/reasons and the sentence **Human merge required;
+  TetherIn never auto-merges.**
+
+Base or head drift invalidates affected stages. Never rebase a run silently.
+An operator may start a new run from the new base; old evidence remains attached
+to the old run.
+
+## Local API contract
+
+The Next server is the only UI endpoint. It reads projections and inserts action
+intents through `packages/local-state`; the runner never trusts browser state.
+Implement:
+
+```text
+GET  /api/preflight
+GET  /api/runs?cursor=<event-sequence>&limit=50
+POST /api/runs
+GET  /api/runs/:runId
+GET  /api/runs/:runId/events?after=<sequence>&limit=200
+POST /api/runs/:runId/actions
+```
+
+Every response includes `schemaVersion`, `mode`, `evidenceOrigin`, `generatedAt`,
+and safe error metadata. POST bodies require an `intentKey` and expected state;
+head-sensitive actions also require `expectedHeadSha`. Return `409` for stale or
+duplicate intent, `422` for disallowed transition, and no secret-bearing error
+detail. Update the UI by bounded polling or local SSE sourced from persisted
+events; dropped connections must not lose state.
+
+## Dashboard implementation
+
+Implement `docs/design/dashboard.md` exactly. The running components are the
+visual artifact. Do not create a fake screenshot or generated dashboard image.
+The dashboard must render persisted real data for:
+
+- compact top bar with chain icon, TetherIn text, LIVE/FIXTURE origin, configured
+  repo, preflight, and diagnostics;
+- run history rail;
+- workflow rail and the four named stages: API Change, Blast Radius, Codex
+  Migration, Validation & PR;
+- exact provenance, grouped impact, focused diff, test/review/gate evidence,
+  event stream, and safe action bar;
+- honest empty, loading, pending, degraded, failed, needs-input, fixture,
+  retained-real, and live-ready states;
+- desktop, tablet, and sub-768px layouts, keyboard order, skip link, ARIA live
+  updates, visible focus, reduced motion, WCAG AA contrast, and screen-reader
+  status text.
+
+Do not introduce fake metrics, generic status dots, rainbow statuses, excessive
+badges, Lucide, emojis, glass effects, glows, or a dark-mode control. The theme
+is the single locked pearl/smoke light theme defined in the design contract.
+
+## Demo implementation
+
+Follow `docs/demo/golden-path.md`.
+
+- Person A still completes and tests all three provider adapters.
+- Select Stripe only for a crisp official version/deprecation change that passes
+  the rubric; otherwise use the proven OpenAI geography removal.
+- Use a believable dedicated consumer repo containing direct use, wrapper, test,
+  and downstream assumption. Never target this Tether repository.
+- Complete and retain one genuine live run/PR as `retained-real`; prepare a
+  separate clean checkout for the live presentation.
+- Rehearse a real fault branch and report what actually catches it. Never script
+  a Greptile finding that did not happen.
+- Keep Codex repair to the initial migration plus one review-driven follow-up.
+- Rehearse the three-minute script, asynchronous fallback, and guarded reset.
+
+## Implementation order
+
+1. Merge and verify exact Person B commit `57a602b`, add only required runtime
+   packaging glue, and scaffold against the committed manifest fixture. Merge
+   and verify Person A when its coordinator-confirmed handoff arrives. Then pin
+   the final dependency graph and `bun.lock`.
+2. Implement strict config, subprocess/redaction utilities, setup checks, and
+   dedicated-repository guards before any write path.
+3. Implement SQLite migrations, immutable event append, projection rebuild,
+   action intents, leases, receipts, artifacts, and state reducer tests.
+4. Integrate Person A detect/manifest and Person B impact/review/gate boundaries
+   with schema validation and artifact digests.
+5. Implement Codex Node sidecar protocol, disposable worktrees, prompt policy,
+   limits, diff inspection, commands, and exact-head checks.
+6. Implement safe Git/`gh` branch, commit, push, draft PR, update, and read paths
+   with idempotent receipts and drift tests.
+7. Implement the root setup/demo/reset scripts and clean child lifecycle.
+8. Implement the dashboard shell, four stages, evidence surfaces, activity,
+   actions, diagnostics, all state variants, responsive behavior, and a11y.
+9. Add fixture, integration, E2E, visual, accessibility, crash/retry, security,
+   and opt-in live tests.
+10. Complete one real golden path, retain honest fallback evidence, rehearse the
+    three-minute script and recovery, then write `HANDOFF.md`.
+
+## Required test matrix
+
+At minimum cover:
+
+- config unknown/missing values, mode rules, secret redaction, loopback URL,
+  directory permissions, Bun/Node/tool version failure, and readiness output;
+- consumer path equals Tether, parent/child overlap, symlink escape, wrong remote,
+  dirty tree, wrong base, missing push access, expired `gh` auth, and token canary;
+- every allowed/forbidden state transition, projection rebuild, concurrent event
+  sequence, duplicate intent, lease expiry/heartbeat/takeover, and restart;
+- crash before/after spec fetch, Codex commit, push, PR create, review trigger,
+  and validation receipt; each retry converges once;
+- provider raw/manifest mismatch, no impact, partial/truncated evidence, KB not
+  enrolled, and fixture-to-live contamination rejection;
+- Codex protocol malformed frame, timeout, abort, crash, prompt cap, path escape,
+  secret read, binary/submodule, diff limits, test removal, and second follow-up;
+- check pass/fail/timeout/skip, output cap/redaction, command injection literal,
+  same-head proof, source change invalidation, and no-network policy;
+- remote branch collision, human commit, PR mismatch, base/head drift, `gh` JSON
+  error, permission failure, rate limit, and absence of any force/merge command;
+- Greptile pending/fail/skip/stale/actionable/clean, unaddressed comments,
+  unchanged-head inference, and exact Person B gate reason mapping;
+- fixture never live-ready, retained run remains immutable, and current live run
+  cannot borrow its review or checks;
+- UI empty/loading/error/degraded/needs-input/success, duplicate clicks, refresh
+  recovery, keyboard flow, screen reader announcements, reduced motion, contrast,
+  responsive collapse, no horizontal page scroll, and screenshot matrix.
+
+Live tests are opt-in with `TETHERIN_LIVE_E2E=1` and require the configured
+dedicated repo. They never create a repository or select another one implicitly.
+The deterministic suite uses A/B fixtures and a local fake `gh` executable with
+recorded typed JSON shapes; it may not impersonate a live pass.
 
 ## Acceptance commands
 
-Person C defines consistent root scripts so final checkout supports:
+After implementing the scripts, all must pass from repository root:
 
 ```bash
-corepack enable
-corepack prepare pnpm@11.23.0 --activate
-pnpm install --frozen-lockfile
-pnpm format:check
-pnpm lint
-pnpm typecheck
-pnpm test
-pnpm test:fixtures
-pnpm test:integration
-pnpm --filter @tetherin/web build
-pnpm exec playwright test
-pnpm verify:planning
-docker compose config --quiet
+bun install --frozen-lockfile
+bun run format:check
+bun run lint
+bun run typecheck
+bun run test
+bun run test:fixtures
+bun run test:integration
+bun run test:e2e
+bun run build
+bun run verify:planning
 git diff --check
+git fsck --no-progress
 git status --short
 ```
 
-For local E2E, run documented commands equivalent to:
+Also run target `bun run setup`, start each fixture/live demo mode, verify one
+Ctrl-C leaves no child or lease, refresh an in-progress run, exercise guarded
+reset on the dedicated demo repo, and inspect the real draft PR at its exact head.
 
-```bash
-cp .env.example .env
-docker compose up -d postgres
-pnpm db:migrate
-pnpm dev
-pnpm worker
-pnpm demo:fixture
-```
+## Handoff artifact
 
-Do not put usable placeholder secrets in Compose or `.env.example`. Fixture E2E
-is deterministic/offline for provider/Greptile/Codex/GitHub adapters and visibly
-labeled. Live demo uses separate explicit command/env gates and a selected demo
-repository only.
+Create `docs/workstreams/person-c/HANDOFF.md` containing:
 
-## Final handoff artifacts
+- planning, A handoff, verified B handoff
+  `57a602ba9de7357fd0385f20e23460b8642b74a9`, and final commit SHAs;
+- exact package/runtime/tool versions and license notes;
+- final contract versions, database schema version, migrations, and lock digest;
+- operator commands and redacted setup readiness result;
+- selected provider/change and why Stripe or OpenAI was chosen;
+- consumer repo name, base/head SHAs, branch, draft PR URL, and evidence origin;
+- provider/oasdiff/manifest digests, impact completeness, Codex thread digest,
+  check receipts, Greptile ID/status/freshness, and final gate reasons;
+- every automated command/result and visual/a11y screenshot matrix;
+- retained-real run provenance, live demo rehearsal result, recovery result, and
+  any remaining risk without fabricated success.
 
-Create/update:
-
-- `docs/workstreams/person-c/HANDOFF.md`: planning/A/B/final SHAs, merge order,
-  architecture, dependency/license pins, migrations, exact test results,
-  fixture/live matrix, PR/deployment URLs, risks;
-- `docs/demo/REHEARSAL.md`: date, provider/source/customer SHAs, artifact/review/
-  PR IDs and digests, observed loop behavior, timings, screenshots with no
-  secrets, fallback/recovery result;
-- local/deployment/recovery runbooks: prerequisites, secret provisioning,
-  GitHub/Greptile setup, migrations, health, logs/redaction, rollback, restore,
-  teardown/retention;
-- integration PR body containing the two unsquashed handoff SHAs and complete
-  evidence. The PR remains human-merge only.
+Commit all integration work, push `person-c/integration` without force, and open
+a normal review PR for this Tether repository if the repository workflow calls
+for one. This integration PR is distinct from the consumer migration draft PR.
 
 ## Definition of done
 
-Done means A/B packages are integrated; one reproducible provider change reaches
-confirmed consumer usages, an isolated Codex patch, real checks, an idempotent
-draft PR, current independent Greptile review evidence, and a human-ready gate;
-the four-stage dashboard explains every artifact; security/failure paths and
-fixture/live boundaries are tested; runbooks/rehearsal exist; CI and final
-acceptance commands pass.
+Done means the four-stage local control room survives refresh/restart, all
+evidence is honest and exact-head-bound, one real change produces one real draft
+consumer PR, Greptile review and the composite gate are visible, the human merge
+requirement is inescapable, every target command works, the design contract and
+test matrix pass, recovery is scoped, and the immutable handoff is pushed.
 
-If live Greptile credentials/KB enrollment are unavailable, the product may be
-code-complete with deterministic fixture E2E and a documented live blocker, but
-do not claim the live Greptile/golden-path acceptance criterion is complete.
-
-Out of scope: auto-merge, production customer rollout, billing/multiregion scale,
-additional providers/review vendors, a provider marketplace/protocol standard,
-rewriting oasdiff, hidden workflow frameworks, and using Greptile/Codex as each
-other's substitute.
+Out of scope: auto-merge, additional providers, remote TetherIn execution,
+customer account flows, unattended scaling, general-purpose code repair, and
+business-semantic decisions made by an agent.

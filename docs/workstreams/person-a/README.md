@@ -4,7 +4,7 @@ This is the complete work package for Person A. It requires no chat history.
 
 ## Mission
 
-Build a production-shaped provider ingestion package that fetches immutable
+Build an implementation-ready provider ingestion package that fetches immutable
 official OpenAPI revisions for OpenAI, Stripe, and Twilio, verifies and runs
 oasdiff v1.29.1, preserves real raw JSON, and emits a validated
 `tetherin.migration-manifest/v1` with exact provenance and schema excerpts.
@@ -15,8 +15,8 @@ or orchestrate jobs.
 
 ## Prerequisites and branch
 
-1. Install Git, Node 22.18+ (Node 24 preferred), Corepack, `jq`, and a SHA-256
-   utility. Network is required only for official GitHub/release downloads.
+1. Install Bun 1.4.x, Git, `jq`, and a SHA-256 utility. Network is required only
+   for official GitHub/release downloads.
 2. Clone this repository and read root `AGENTS.md`, `contracts/README.md`,
    `docs/decisions/0001-oasdiff-foundation.md`, `docs/provenance.md`, and this
    directory's `AGENTS.md`.
@@ -26,13 +26,13 @@ or orchestrate jobs.
 git fetch origin --tags
 test "$(git rev-parse HEAD)" = "<PLANNING_BASE_SHA>"
 git switch -c person-a/provider-diff
-corepack enable
-corepack prepare pnpm@11.23.0 --activate
+bun --version
 ```
 
 If the branch already exists, resume it only when its merge base with the
 planning SHA equals that SHA. During development use
-`pnpm install --lockfile=false`; do not commit a lockfile.
+`bun install --no-save`; do not commit `bun.lock`. Person C regenerates the
+single root lock after integration.
 
 ## Ownership and dependency boundary
 
@@ -265,13 +265,13 @@ or injected fetch, never third-party mocks that hide URL/checksum behavior.
 Define package scripts so these commands work from repository root:
 
 ```bash
-pnpm install --lockfile=false
-pnpm --filter @tetherin/provider-pipeline format:check
-pnpm --filter @tetherin/provider-pipeline lint
-pnpm --filter @tetherin/provider-pipeline typecheck
-pnpm --filter @tetherin/provider-pipeline test
-pnpm --filter @tetherin/provider-pipeline test:fixture
-pnpm verify:planning
+bun install --no-save
+bun run --filter @tetherin/provider-pipeline format:check
+bun run --filter @tetherin/provider-pipeline lint
+bun run --filter @tetherin/provider-pipeline typecheck
+bun run --filter @tetherin/provider-pipeline test
+bun run --filter @tetherin/provider-pipeline test:fixture
+bun run verify:planning
 git diff --check
 git status --short
 ```
@@ -304,6 +304,6 @@ validated raw artifacts, normalized v1 manifests, security/error handling,
 focused tests, source/license provenance, and the handoff commit exist. A README
 mock, hard-coded manifest, hand-written diff, or unverified binary is not done.
 
-Out of scope: consumer source analysis, Greptile, Codex, GitHub App/PR creation,
-database/UI/deployment, auto-merge, additional providers, and general migration
+Out of scope: consumer source analysis, Greptile, Codex, Git/PR creation,
+state persistence/UI, auto-merge, additional providers, and general migration
 guidance generated without official provider sources.

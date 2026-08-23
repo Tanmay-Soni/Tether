@@ -1,51 +1,60 @@
 # Person C agent instructions
 
-You are the integrator and owner of the complete runnable TetherIn product. Read
-this file and `README.md` completely before editing. "Do Person C's work
-end-to-end" means merge the two verified handoffs, implement every checklist
-item, rehearse one real golden path, and deliver the final integration PR without
-depending on chat context.
+You own the laptop-only TetherIn product integration and the real golden path.
+Read root `AGENTS.md`, `../BASELINES.md`, this file, `README.md`,
+`../../design/dashboard.md`, all shared contracts/decisions, the threat model,
+and the demo runbook completely before editing. "Complete Person C end-to-end"
+authorizes the implementation and verification in those files without chat
+context.
 
-## Start and merge rule
+## Start rule
 
-Read `../BASELINES.md`. Create `person-c/integration` from its exact
-`PLANNING_BASE_SHA` only after `PERSON_A_HANDOFF_SHA` and
-`PERSON_B_HANDOFF_SHA` are available. Verify both descend from the planning base.
-Merge A with `--no-ff`, run its tests, then merge B with `--no-ff` and run its
-tests. Do not squash or reimplement their packages.
+Start exactly `person-c/integration` from `PLANNING_BASE_SHA`. Merge verified
+Person B commit `57a602ba9de7357fd0385f20e23460b8642b74a9` with `--no-ff`, run its
+actual Bun suite, and scaffold provider input from the committed OpenAI manifest
+fixture while Person A is pending. Merge A only from a coordinator-confirmed
+immutable SHA, run its suite, and record all SHAs. Do not inspect mutable
+workstream branches or recreate their behavior from plans.
 
 ## Ownership
 
-You own integration changes and may create/change:
+You may create or change:
 
-- `apps/**`
-- `packages/orchestrator/**`, `packages/github/**`, `packages/codex/**`,
-  `packages/db/**`, and generated `packages/contracts/**`
-- root runtime/tooling/dependency files, `.github/**`, deployment/runbook/demo
-  files, and the single `pnpm-lock.yaml`
-- shared contracts only through an explicit coordinated versioned change after
-  reviewing both handoffs
-- `docs/workstreams/person-c/HANDOFF.md`
+- `apps/**`;
+- `packages/orchestrator/**`, `packages/local-state/**`,
+  `packages/codex-runner/**`, `packages/git-local/**`,
+  `packages/github-cli/**`, and `packages/config/**`;
+- `packages/greptile-runtime/**` for necessary public-import/build or local
+  sidecar glue around exact Person B exports, never replacement algorithms;
+- final root scripts/configuration and `bun.lock`;
+- local runbooks, the Person C handoff, and coordinated shared-contract versions.
 
-Avoid modifying A/B implementation except for a clearly documented integration
-fix. Keep such fixes in separate commits and send the rationale back to the
-owner's handoff notes.
+Preserve A/B packages and tests. A proposed contract change requires a versioned
+coordinated patch and updated producer/consumer tests. Never hide an integration
+failure with a second oasdiff, Greptile, impact, or validation implementation.
 
-## Product invariants
+## Non-negotiable behavior
 
-- oasdiff detects; Greptile analyzes/reviews/evidences; Codex edits; tests and
-  deterministic coverage verify; GitHub hosts a draft PR; a human alone merges.
-- Live/fixture/retained states are always visible. Never convert an unavailable
-  integration into a fake success.
-- Only authorized repositories and exactly OpenAI/Stripe/Twilio are in scope.
-- No secrets in checkout, model context, logs, DB payloads, PR text, or commits.
-- A follow-up commit invalidates checks and Greptile review. Gate only the exact
-  current head SHA. Never force-push or auto-merge.
+- Bun is the operator and workspace command surface. The Codex SDK is isolated
+  in a Node 22 sidecar because its official TypeScript support names Node.
+- The app binds to localhost, stores only ignored local SQLite/artifacts, and
+  operates on the exact configured consumer checkout outside this repository.
+- Use local Git and authenticated `gh`. Never store a GitHub token, force push,
+  overwrite human commits, or provide a merge path.
+- Every side effect is idempotent and receipted. Every test/review/gate binds to
+  the exact head and is invalidated by drift.
+- Fixture, retained-real, and live are distinct. Fixture can never reach live
+  `PR_READY`; a pending live review remains pending.
+- Codex edits only within the disposable allowlisted checkout. At most one
+  review follow-up is allowed. Do not disable tests or guess business semantics.
+- Implement the premium dashboard from `../../design/dashboard.md` using one
+  Radix foundation, Phosphor icons, supplied chain icon, and no fake data/image.
+- TetherIn never auto-merges. A human owns the final decision.
 
 ## Finish rule
 
-Complete every acceptance/rehearsal step, write the final handoff/runbook,
-commit/push the integration branch, and open a human-reviewable PR. Report exact
-merged SHAs, final SHA, tests, live-vs-fixture evidence, deployment/demo URL if
-created, and remaining risks. Do not claim completion while a required gate is
-simulated or unverified.
+Run every README acceptance command, complete a genuine live golden path and
+guarded recovery, create `HANDOFF.md`, commit all intended integration changes,
+push without force, and report immutable SHAs and URLs. A polished fixture alone,
+a screen disconnected from SQLite, stale review evidence, or an unpushed branch
+is not done.

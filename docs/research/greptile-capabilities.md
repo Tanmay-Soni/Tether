@@ -1,5 +1,10 @@
 # Greptile capability truth table
 
+> Scope note: references below to Greptile's own GitHub App, network, or service
+> options describe the external Greptile product as documented. They are not
+> TetherIn runtime requirements. The hackathon TetherIn app is laptop-only and
+> uses local Git plus the operator's authenticated `gh` session.
+
 Research date: 2026-08-23. Sources are current official Greptile documentation.
 Public interfaces can change; Person B must rerun this check before coding and
 record any delta. When docs do not establish a property, this table says so.

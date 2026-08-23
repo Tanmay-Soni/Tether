@@ -1,42 +1,86 @@
 # Person C integration checklist
 
-## Before merging workstreams
+## Handoffs and dependency graph
 
-- [ ] Verify A and B branch heads descend from `PLANNING_BASE_SHA`.
-- [ ] Read both handoff notes; confirm schemas consumed are the checked-in v1 files.
-- [ ] Run secret scan and `git diff --check` on each branch.
-- [ ] Confirm A did not implement a custom diff engine or vendor full specs.
-- [ ] Confirm B distinguishes live/fixture and does not claim a native Greptile blast-radius/validator endpoint.
-- [ ] Merge A with `--no-ff`, run A tests; then merge B with `--no-ff`, run B tests.
-- [ ] Resolve ownership violations before adding integration glue.
+- [ ] Start from the exact `PLANNING_BASE_SHA`; record it in the final handoff.
+- [ ] Fetch and verify remote Person B branch head is exactly
+      `57a602ba9de7357fd0385f20e23460b8642b74a9`; merge it and run its actual Bun
+      checks. Record that its handoff had no live Greptile smoke.
+- [ ] Scaffold provider input only from the labeled committed manifest fixture
+      while A is pending. Merge A only from a coordinator-confirmed immutable
+      SHA, then run A checks. Final live completion requires A.
+- [ ] Preserve B's public APIs and algorithms; add only explicit C-owned build or
+      Node-sidecar glue if its no-build-script/Bun compatibility gates require it.
+- [ ] Resolve no shared behavior by reimplementing either package.
+- [ ] Replace all workspace placeholders with exact dependency pins, run
+      `bun install`, inspect the graph, and commit one `bun.lock`.
 
-## Shared runtime
+## Local runtime
 
-- [ ] Generate one pnpm lockfile and pin all production dependencies.
-- [ ] Generate TypeScript/runtime validators from the four JSON Schemas.
-- [ ] Add Postgres migrations with unique idempotency key and append-only events.
-- [ ] Implement four-stage dashboard with provenance and live/fixture/degraded badges.
-- [ ] Implement least-privilege GitHub App token/webhook verification and repo authorization.
-- [ ] Implement isolated Codex SDK runner, command allowlist, diff policy, and redaction.
-- [ ] Make all external operations retryable and persist IDs before polling.
+- [ ] Implement the exact root scripts `setup`, `demo`, `demo:fixture`,
+      `demo:live`, and guarded `demo:reset`.
+- [ ] Make `setup` validate Bun, Node SDK sidecar, Git, `rg`, `jq`, `gh auth`,
+      redacted mode-specific secrets, oasdiff install/smoke, SQLite migrations,
+      and the dedicated repo path/remote/base/clean status.
+- [ ] Start UI and runner behind one command; print URL and mode; forward
+      shutdown signals; clean child processes and local leases.
+- [ ] Keep SQLite and run artifacts under ignored `.tetherin/` with user-only
+      permissions, content digests, retention, and recovery tests.
+- [ ] Implement one bounded SQLite worker lease and idempotent side-effect
+      receipts; no hidden second orchestrator.
 
-## End-to-end gates
+## Workflow and evidence
 
-- [ ] One official provider change enters and produces raw oasdiff JSON + manifest.
-- [ ] Consumer repo/base authorization is proven before source access.
-- [ ] KB evidence (when available) and deterministic confirmation remain separately visible.
-- [ ] Codex patch is minimal and required checks pass on recorded head SHA.
-- [ ] Draft PR includes source SHAs/URLs, normalized changes, impact, and test evidence.
-- [ ] Greptile review is explicitly triggered for the draft and collected asynchronously.
-- [ ] Stale review, unresolved comment, failed check, partial coverage, and fixture evidence block live-ready.
-- [ ] Follow-up patch invalidates prior checks/review and repeats the gate.
-- [ ] Human is the only actor able to merge.
+- [ ] Persist every state in the shared state machine plus append-only v1 events
+      and materialized projections; refresh/restart preserves a run.
+- [ ] Bind provider, impact, Codex, check, PR, Greptile, and gate evidence to
+      exact immutable source and consumer/PR SHAs.
+- [ ] Invalidate and safely re-enter the right state after base/head drift.
+- [ ] Preserve live, fixture, and retained-real origins through API, DB, UI, and
+      PR body. Fixture never satisfies live-ready.
+- [ ] Cap Codex at the initial pass plus one review follow-up; business choices
+      and a second blocked review become `NEEDS_INPUT`.
 
-## Rehearsal and release
+## Git and GitHub
 
-- [ ] Rehearse Stripe version/deprecation hero; use exact OpenAI pair if it misses rubric.
-- [ ] Retain a real async rehearsal; never script a false Greptile result.
-- [ ] Test duplicate webhook, base drift, rate limit, permission denial, timeout, and no-impact paths.
-- [ ] Verify no customer source/secrets in logs, DB dumps, screenshots, or fixtures.
-- [ ] Run all unit/integration/E2E commands, `pnpm verify:planning`, and `git diff --check`.
-- [ ] Document deployment/rollback and demo recovery steps.
+- [ ] Canonicalize the dedicated consumer path; reject Tether root, wrong remote,
+      dirty state, symlink escape, wrong base, or unexpected head.
+- [ ] Create `tetherin/<provider>/<manifest-short-id>` without force, store an
+      ownership marker, and refuse to overwrite human commits.
+- [ ] Use local Git plus authenticated `gh` for push, draft PR create/update,
+      PR/head/check reads, and no merge operation.
+- [ ] Make the PR body include provider URLs/SHAs/hashes, oasdiff version/raw
+      digest, manifest, confirmed impact, Codex summary, commands/results,
+      Greptile status, evidence origin, exact head, and human-merge statement.
+- [ ] Crash/retry tests converge on one branch and one PR.
+
+## Dashboard and demo
+
+- [ ] Implement every component, token, state, responsive rule, accessibility
+      requirement, and visual acceptance item in `docs/design/dashboard.md`.
+- [ ] Render the four customer stages, run history, provenance, grouped impact,
+      focused diff, exact-head validation, activity stream, safe actions, and
+      diagnostics from real persisted data.
+- [ ] Exercise empty, loading, pending, degraded, failed, needs-input, fixture,
+      retained-real, and live-ready states with no fake metric or finding.
+- [ ] Complete one real golden path, preferably a valid Stripe version or
+      deprecation change, otherwise the proven OpenAI `geography` removal.
+- [ ] Retain one genuine successful run and PR as an immutable async fallback;
+      rehearse the exact three-minute script from `docs/demo/golden-path.md`.
+- [ ] Test guarded recovery only against the dedicated demo repository.
+
+## Final verification
+
+- [ ] `bun install --frozen-lockfile`
+- [ ] `bun run format:check`
+- [ ] `bun run lint`
+- [ ] `bun run typecheck`
+- [ ] `bun run test`
+- [ ] `bun run test:fixtures`
+- [ ] `bun run test:integration`
+- [ ] `bun run test:e2e`
+- [ ] `bun run build`
+- [ ] `bun run verify:planning`
+- [ ] `git diff --check && git fsck --no-progress && git status --short`
+- [ ] No token, secret, raw transcript, customer source body, or false live claim
+      exists in tracked files, SQLite exports, screenshots, logs, or PR text.

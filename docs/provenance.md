@@ -47,14 +47,29 @@ service file across revisions or build a deterministic documented bundle.
 
 ## Codex
 
-- Official SDK docs: <https://developers.openai.com/codex/sdk>
+- Official SDK docs: <https://developers.openai.com/codex/sdk/>
 - Planning SDK package anchor: `@openai/codex-sdk@0.149.0`
-- Official GitHub Action docs: <https://developers.openai.com/codex/github-action>
-- Optional action source: <https://github.com/openai/codex-action>
-- `v1` commit at research time: `86365089eb2b84e0a8fb0717b304f8bdcb13b20e`
 
-Person C must reverify the selected package/action and pin it exactly in the
-lockfile/workflow. Do not silently upgrade during a demo run.
+The official page says the TypeScript library starts, continues, and resumes
+local Codex threads, is for server-side use, and requires Node 18+. Person C
+must reverify and pin the SDK exactly in `bun.lock`; Bun starts a local Node 22
+sidecar for this adapter. Do not silently upgrade during a demo run.
+
+## Local toolchain and dashboard
+
+- Bun package manager/runtime: <https://bun.sh/docs/pm/cli/install>
+- Bun lockfile: <https://bun.sh/docs/pm/lockfile>
+- Bun workspace filtering: <https://bun.sh/docs/pm/filter>
+- Planning Bun pin: `1.4.0`, release `bun-v1.4.0`
+- Radix Themes: <https://www.radix-ui.com/themes/docs/overview/getting-started>
+- Radix Themes customization: <https://www.radix-ui.com/themes/docs/overview/styling>
+- Phosphor React icons: <https://github.com/phosphor-icons/react>
+- Geist typeface: <https://vercel.com/font>
+
+Bun documents that `bun install` creates text `bun.lock`, that the lock should
+be committed, and that `--no-save` installs without creating a lock. Radix
+Themes provides the single accessible React component foundation; custom CSS
+variables and Radix Primitives extend it without adding a second component kit.
 
 ## Greptile
 
@@ -64,6 +79,6 @@ lockfile/workflow. Do not silently upgrade during a demo run.
 - Graph context: <https://www.greptile.com/docs/how-greptile-works/graph-based-codebase-context>
 - PR review anatomy: <https://www.greptile.com/docs/code-review/first-pr-review>
 
-Greptile is a hosted integration, not vendored code. Save tool names, request
+Greptile is an external integration, not vendored code. Save tool names, request
 metadata with secrets removed, response digests, IDs, timestamps, KB versions,
 truncation, and execution mode. Do not commit customer response bodies.

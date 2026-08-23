@@ -20,7 +20,7 @@ You may create or change only:
 - `docs/workstreams/person-b/HANDOFF.md`
 
 Do not edit root files, `contracts/**`, apps, provider/Codex/orchestrator code,
-other plans, or `pnpm-lock.yaml`. Put required shared changes as exact proposals
+other plans, or `bun.lock`. Put required shared changes as exact proposals
 in `HANDOFF.md` for Person C.
 
 ## Truth boundary

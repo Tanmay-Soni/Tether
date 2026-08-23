@@ -4,7 +4,7 @@ This is the complete work package for Person B. It requires no chat history.
 
 ## Mission
 
-Build a production-shaped Greptile adapter that:
+Build an implementation-ready Greptile adapter that:
 
 1. enriches pre-migration impact analysis with documented Greptile knowledge-base
    MCP tools for an authorized consumer repository;
@@ -19,7 +19,7 @@ build the dashboard, or merge anything.
 
 ## Prerequisites and branch
 
-1. Install Git, Node 22.18+ (Node 24 preferred), Corepack, `jq`, and `rg`.
+1. Install Bun 1.4.x, Git, `jq`, and `rg`.
 2. Read root `AGENTS.md`, all four schemas in `contracts/`,
    `docs/decisions/0002-greptile-evidence-boundary.md`,
    `docs/research/greptile-capabilities.md`, `docs/security/threat-model.md`, and
@@ -30,15 +30,15 @@ build the dashboard, or merge anything.
 git fetch origin --tags
 test "$(git rev-parse HEAD)" = "<PLANNING_BASE_SHA>"
 git switch -c person-b/greptile-evidence
-corepack enable
-corepack prepare pnpm@11.23.0 --activate
+bun --version
 ```
 
 Live tests additionally require a Greptile organization API key, the consumer
-repository selected/enabled through Greptile's GitHub App, and knowledge-base
+repository selected/enabled through Greptile's own GitHub integration, and knowledge-base
 rollout enabled if KB evidence is expected. Put the key only in the process
-environment as `GREPTILE_API_KEY`. Use `pnpm install --lockfile=false`; do not
-commit a lockfile.
+environment as `GREPTILE_API_KEY`. This is Greptile authorization, not a
+TetherIn repository-auth mechanism. Use `bun install --no-save`; do not commit
+`bun.lock`. Person C regenerates the single root lock after integration.
 
 ## Ownership and package layout
 
@@ -375,13 +375,13 @@ explicit reason when KB rollout is unavailable. Deterministic CI uses fixtures.
 Define scripts so these work from repository root:
 
 ```bash
-pnpm install --lockfile=false
-pnpm --filter @tetherin/greptile format:check
-pnpm --filter @tetherin/greptile lint
-pnpm --filter @tetherin/greptile typecheck
-pnpm --filter @tetherin/greptile test
-pnpm --filter @tetherin/greptile test:fixtures
-pnpm verify:planning
+bun install --no-save
+bun run --filter @tetherin/greptile format:check
+bun run --filter @tetherin/greptile lint
+bun run --filter @tetherin/greptile typecheck
+bun run --filter @tetherin/greptile test
+bun run --filter @tetherin/greptile test:fixtures
+bun run verify:planning
 git diff --check
 git status --short
 ```
@@ -411,11 +411,11 @@ asking you a question.
 ## Definition of done
 
 Done means documented MCP KB enrichment, deterministic impact confirmation,
-hosted PR review trigger/collection, composite validation policy, explicit
+PR review trigger/collection, composite validation policy, explicit
 fixtures, robust security/error handling, schema-validated outputs, focused
 tests, and an immutable handoff commit exist.
 
 Out of scope: provider ingestion/oasdiff, code editing, GitHub branch/PR writes,
-state persistence/UI/deployment, resolving comments, auto-merge, undocumented
+state persistence/UI, resolving comments, auto-merge, undocumented
 Greptile endpoints, general source-graph access, and additional code-review
 vendors.

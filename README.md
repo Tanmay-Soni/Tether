@@ -4,145 +4,173 @@
 
 # TetherIn
 
-**Install once; external API integrations maintain themselves.**
+TetherIn turns an official OpenAPI change into an evidence-backed migration in
+a dedicated consumer repository: oasdiff detects the contract change, Greptile
+and deterministic analysis locate affected code, Codex makes the smallest safe
+patch, local checks run, and a draft GitHub PR is prepared for a human to merge.
 
-TetherIn turns an official OpenAPI change into a tested migration PR in an
-authorized customer repository. It is not a changelog summarizer, a dependency
-bump bot, or an auto-merge service: it carries a semantic contract change across
-wrappers, transforms, webhooks, tests, and downstream assumptions, then leaves
-the final decision with a human.
+It is not a changelog summary, a package bump bot, or an auto-merge tool. Unlike
+Dependabot, it follows behavioral change through direct calls, wrappers,
+transforms, webhook handling, tests, and downstream assumptions.
 
-Provider value: **publish an API change once; send correct migration PRs to
-affected customers.** The longer-term distribution layer is an open,
-provider-authored executable migration protocol, executed by Codex and
-independently analyzed and validated with Greptile evidence.
+> Repository status: definitive implementation plans, shared contracts, and
+> fixtures. Person C is responsible for making the target commands below real.
+> Until that handoff lands, `bun run setup` and `bun run demo` are a documented
+> operator contract, not a claim that the application already runs.
 
-> Repository status: implementation-ready planning baseline and wire contracts.
-> The dashboard and workers are assigned to the three workstreams below. Nothing
-> in this repository claims that a live customer migration has already run.
+## Laptop-only hackathon boundary
 
-## The evidence pipeline
+The hackathon build runs only on the operator's laptop. There is no customer
+installer, remote TetherIn service, or TetherIn GitHub application. The local
+runner uses an existing authenticated `gh` session and normal Git commands
+against one explicitly configured demo repository. GitHub hosts the draft PR;
+the human still owns the merge decision.
+
+After Person C completes the integration, the operator path is exactly:
+
+```bash
+bun install
+cp .env.example .env.local
+bun run setup
+bun run demo
+```
+
+`bun run setup` prints a redacted readiness report. `bun run demo` starts the
+dashboard and orchestrator, prints the localhost URL, and shuts both down cleanly.
+Use `bun run demo:fixture` for a visibly labeled offline rehearsal or
+`bun run demo:live` for the real PR path. Fixture evidence never satisfies the
+live-ready gate.
+
+No JavaScript package needs to be installed globally. Required system tools are
+Bun 1.4.x, Node 22.18+ for the officially supported Codex SDK sidecar, Git,
+GitHub CLI, `rg`, and `jq`. The operator authenticates once with `gh auth login`;
+TetherIn reads the token through `gh auth token` when needed and never copies it
+into `.env.local`.
+
+## Local evidence pipeline
 
 ```mermaid
 flowchart LR
     S[Official old/new OpenAPI revisions] --> O[Pinned oasdiff JSON]
     O --> M[Normalized migration manifest]
-    M --> G[Greptile KB context enrichment]
-    G --> D[Deterministic rg/AST confirmation]
-    D --> C[Codex minimal migration]
-    C --> T[Tests and typecheck]
-    T --> P[Draft GitHub PR]
-    P --> R[Greptile repo-aware PR review]
+    M --> B[Greptile KB enrichment when available]
+    B --> D[Deterministic rg and AST confirmation]
+    D --> C[Codex migration in disposable checkout]
+    C --> T[Local typecheck and tests]
+    T --> G[Git push and draft PR via gh]
+    G --> R[Greptile PR review]
     R --> V[TetherIn validation gate]
-    V -->|issues| C
-    V -->|clean, same head SHA| H[Human approval and merge]
+    V -->|one or two bounded fixes| C
+    V -->|same head, clean evidence| H[Human approval and merge]
+
+    UI[Local dashboard] --- DB[(SQLite and run artifacts)]
+    UI --- M
+    UI --- D
+    UI --- C
+    UI --- V
 ```
 
-The dashboard presents four customer-facing stages: provider change detected;
-affected consumers/files; Codex migration; tests + Greptile + PR ready.
+The local database and redacted run artifacts live under ignored `.tetherin/`.
+The configured consumer checkout must be an absolute path outside this Tether
+repository, clean at the expected base, and connected to the exact configured
+`owner/repo`. Branches use `tetherin/<provider>/<manifest-short-id>`. No force
+push is permitted.
 
 | Component | Exact responsibility |
 | --- | --- |
-| [oasdiff](https://github.com/oasdiff/oasdiff) | Authoritative semantic OpenAPI `breaking` and `changelog` JSON; pinned to v1.29.1 and verified by upstream checksums. |
-| Codex | Works in an isolated checkout, makes the smallest migration patch, and runs repository instructions/tests. |
-| Greptile | Supplies available knowledge-base context, independently reviews the PR with whole-repository context, and provides review evidence to TetherIn's validation abstraction. |
-| TetherIn | Normalizes provenance, confirms usages deterministically, orchestrates jobs, evaluates the gate, records audit evidence, and manages draft PRs. |
-| GitHub + human | Provide least-privilege repository access, branches/checks/PRs, and final merge approval. |
+| [oasdiff](https://github.com/oasdiff/oasdiff) | The only semantic OpenAPI diff engine; v1.29.1 is pinned and checked against upstream hashes. |
+| Person A package | Fetches immutable official specs, invokes oasdiff, preserves raw output, and emits the normalized manifest. |
+| Person B package | Enriches impact evidence where Greptile supports it, confirms usages with `rg` and AST analysis, collects PR review evidence, and computes the validation report. |
+| Codex | Edits code only inside a disposable consumer checkout using the official local SDK adapter. |
+| Person C app | Owns the local state machine, SQLite audit trail, UI, bounded runner, Git and `gh` operations, test execution, and demo. |
+| Human | Reviews and merges the draft PR. TetherIn has no merge capability. |
 
-"Code validator" is a TetherIn interface, not a claimed Greptile product name.
-It combines Greptile's documented review status/comments with deterministic
-coverage and test results. See the [capability truth table](docs/research/greptile-capabilities.md).
+"Code validator" is TetherIn's composite gate, not a Greptile product name. It
+combines exact-head test results, deterministic coverage, and Greptile's
+documented review status and comments. Greptile's current documented knowledge
+base search is substring search over synthesized Markdown, not a guaranteed
+semantic blast-radius endpoint. See the
+[capability truth table](docs/research/greptile-capabilities.md).
 
-## Supported providers
+## Supported providers and demo
 
-Hackathon scope is deliberately narrow:
-
-| Provider | Official spec source | License | Demo role |
+| Provider | Official source | License | Hackathon role |
 | --- | --- | --- | --- |
-| OpenAI | [`openai/openai-openapi`](https://github.com/openai/openai-openapi) | MIT | Deterministic fallback fixture: `geography` removal between two exact commits. |
-| Stripe | [`stripe/openapi`](https://github.com/stripe/openapi) | MIT | Preferred hero: an explicit version/deprecation migration, respecting Stripe's versioning model. |
-| Twilio | [`twilio/twilio-oai/spec/yaml`](https://github.com/twilio/twilio-oai/tree/main/spec/yaml) | MIT | Supported adapter and contract tests. |
+| OpenAI | [`openai/openai-openapi`](https://github.com/openai/openai-openapi) | MIT | Proven fallback: real `geography` removal across two immutable commits. |
+| Stripe | [`stripe/openapi`](https://github.com/stripe/openapi) | MIT | Preferred hero only if an explicit version or deprecation migration passes the fixture rubric. |
+| Twilio | [`twilio/twilio-oai/spec/yaml`](https://github.com/twilio/twilio-oai/tree/main/spec/yaml) | MIT | Adapter and contract tests. |
 
-One indisputable live golden path is required; three shallow demos are not. If
-the Stripe historical pair does not meet the acceptance rubric, use the retained
-real OpenAI pair documented in `contracts/fixtures/oasdiff/README.md`.
+Only one live end-to-end path is required. All three adapters receive unit and
+contract tests; the repository must never imply three live migrations. The
+[golden-path runbook](docs/demo/golden-path.md) defines the three-minute demo,
+retained genuine fallback, and scoped recovery.
 
 ## Workstreams
 
-Person A and Person B branch from the same planning baseline and work in
-parallel. Person C merges their handoffs and owns the complete product.
+Person A and Person B work independently from the same immutable planning base.
+Person C merges both handoffs and delivers the complete local product.
 
-| Person | Mission | Owned output | Start here |
-| --- | --- | --- | --- |
-| A | Provider ingestion, immutable specs, oasdiff, normalization | `packages/provider-pipeline`, provider fixtures/tests | [`docs/workstreams/person-a`](docs/workstreams/person-a/README.md) |
-| B | Greptile KB evidence, PR review collection, validation adapter | `packages/greptile`, Greptile fixtures/tests | [`docs/workstreams/person-b`](docs/workstreams/person-b/README.md) |
-| C | State machine, dashboard, DB, GitHub App, Codex runner, E2E demo | `apps/**` and integration packages | [`docs/workstreams/person-c`](docs/workstreams/person-c/README.md) |
+| Person | Status | Mission | Owned output | Start here |
+| --- | --- | --- | --- | --- |
+| A | Awaiting immutable handoff | Provider ingestion, immutable specs, oasdiff, normalization | `packages/provider-pipeline/**`, provider fixtures and tests | [`docs/workstreams/person-a`](docs/workstreams/person-a/README.md) |
+| B | Complete at `57a602ba9de7357fd0385f20e23460b8642b74a9` | Greptile evidence, deterministic confirmation, PR review, validation | `packages/greptile/**`, Greptile fixtures and tests | [`docs/workstreams/person-b`](docs/workstreams/person-b/README.md) |
+| C | Planned | Local runtime, dashboard, SQLite, Codex, Git and GitHub PR flow, E2E demo | `apps/**`, integration packages, root tooling and final lockfile | [`docs/workstreams/person-c`](docs/workstreams/person-c/README.md) |
 
-Read `docs/workstreams/BASELINES.md` for the exact immutable base commit and
-handoff merge order. Then start only the assigned branch:
+Read [`docs/workstreams/BASELINES.md`](docs/workstreams/BASELINES.md) for the
+exact planning SHA and merge order. In a separate checkout, start only the
+assigned branch:
 
 ```bash
 git fetch origin --tags
 git switch --detach <PLANNING_BASE_SHA>
-git switch -c person-a/provider-diff     # Person A only
-# git switch -c person-b/greptile-evidence  # Person B only
-# git switch -c person-c/integration        # Person C only, after A+B handoffs
-corepack enable
-corepack prepare pnpm@11.23.0 --activate
+git switch -c person-a/provider-diff
+# In other checkouts: person-b/greptile-evidence or person-c/integration.
+bun install --no-save
 ```
 
-Do not create all three branches in one checkout. Separate agents should use
-separate worktrees or clones.
+A and B do not commit `bun.lock`; Person C regenerates and commits the single
+root lock after merging their handoffs. This keeps the parallel branches
+independent while every workstream uses Bun commands.
+
+## Configuration contract
+
+Copy `.env.example` to ignored `.env.local`. The minimum values are the local
+base URL, SQLite and run-artifact paths, mode, an absolute dedicated consumer
+checkout, its expected `owner/repo` and base branch, OpenAI key, Greptile mode
+and key, and the oasdiff version. Never add a GitHub token. `bun run setup` must
+check required secrets without printing them and report each external connection
+as ready, unavailable, or fixture-only.
+
+The official [`@openai/codex-sdk`](https://developers.openai.com/codex/sdk/)
+currently documents a server-side TypeScript library that controls local Codex
+threads and requires Node 18+. Person C therefore keeps Bun as the only operator
+entry point while launching a narrow local Node 22 sidecar for this adapter.
+Nothing in the Codex prompt may include `.env` files, credentials, unrelated
+source, or untrusted evidence as instructions.
 
 ## Repository map
 
 ```text
-contracts/                 Versioned cross-workstream JSON Schemas and examples
-docs/architecture/         State machine and interface contracts
-docs/decisions/            Architectural decisions with consequences
-docs/research/             Verified primary-source capability research
-docs/security/             Threat model and data-boundary rules
-docs/demo/                 Honest golden-path rehearsal
-docs/workstreams/          Self-contained Person A/B/C work packages
-docs/assets/               Supplied artwork and derived web assets
-scripts/verify-planning.sh Planning/schema/asset consistency checks
+contracts/                  Versioned cross-workstream JSON Schemas and examples
+docs/architecture/          Local topology and workflow projection
+docs/decisions/             Architectural decisions and consequences
+docs/design/                Premium dashboard implementation contract
+docs/research/              Verified primary-source capability research
+docs/security/              Laptop and external-data threat model
+docs/demo/                  Three-minute demo and scoped recovery runbook
+docs/workstreams/           Self-contained Person A, B, and C packages
+docs/assets/                Original artwork and safe chain-icon derivatives
+scripts/verify-planning.sh  Planning, schema, asset, and consistency checks
 ```
 
-## Configuration
-
-Copy `.env.example` to `.env` and supply secrets only in your local secret store.
-The checked-in example contains names, never credentials. Required live
-integrations are a least-privilege GitHub App, an OpenAI API key for the Codex
-runner, and a Greptile API key for `https://api.greptile.com/mcp`. `fixture` mode
-must remain visibly labeled in the UI and audit trail.
-
-The default Codex integration is the server-side
-[`@openai/codex-sdk`](https://developers.openai.com/codex/sdk) in an ephemeral,
-network-restricted checkout. The official
-[`openai/codex-action`](https://developers.openai.com/codex/github-action) is an
-optional deployment adapter, not the product state machine.
-
-## Demo fixture with real provenance
-
-The committed OpenAI fixture was produced by oasdiff v1.29.1 from official
-immutable source commits:
-
-- old: [`13c6a94fca988f8be3c5de09d73f012709985d10`](https://github.com/openai/openai-openapi/commit/13c6a94fca988f8be3c5de09d73f012709985d10)
-- new: [`f85dbe223d40e1a31cba812ab2d755c7e98a92a3`](https://github.com/openai/openai-openapi/commit/f85dbe223d40e1a31cba812ab2d755c7e98a92a3)
-
-It detects removal of request property `geography` from `create-project` and
-`modify-project`. This is a real contract-diff fixture, not evidence that a live
-Greptile review or customer PR has completed.
-
-## Licensing and artwork
+## Provenance, licenses, and artwork
 
 TetherIn is MIT licensed. oasdiff is Apache-2.0; the three official provider
-spec repositories are MIT. We link/fetch immutable upstream artifacts instead
-of relicensing them. See [`NOTICE.md`](NOTICE.md) and
-[`docs/provenance.md`](docs/provenance.md).
+spec repositories are MIT. Immutable upstream artifacts are fetched and cached
+with their licenses and hashes rather than silently relicensed. See
+[`NOTICE.md`](NOTICE.md) and [`docs/provenance.md`](docs/provenance.md).
 
-The original supplied artwork is preserved as
+The supplied original artwork is preserved at
 `docs/assets/teatherin-original.png`. It visibly spells **TeatherIn**, while the
-product is **TetherIn**. The README uses only a lossless crop of its chain icon;
-no corrected wordmark has been fabricated. A corrected, rights-cleared wordmark
-is still required before launch.
+product name is **TetherIn**. Product surfaces use only the derived chain icon
+plus live text. No corrected wordmark has been fabricated.

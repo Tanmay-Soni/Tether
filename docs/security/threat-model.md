@@ -1,58 +1,62 @@
-# Security and privacy threat model
+# Laptop security and privacy threat model
 
-TetherIn is authorized to change customer code, so a polished demo without a
-strict trust model is unsafe. The minimum deployment boundary is one isolated
-job environment per consumer repository and migration.
+TetherIn can edit and push code, so a laptop-only demo still needs hard trust
+boundaries. The operator explicitly selects one dedicated consumer checkout and
+expected `owner/repo`. This Tether repository is never a migration target.
 
-## Data sent outside TetherIn
+## Data boundary
 
 | Destination | Allowed data | Never send |
 | --- | --- | --- |
-| oasdiff process | Official spec bytes in a network-disabled local process | Credentials, customer source |
-| Greptile | Only repositories the customer enabled in Greptile; manifest search terms; PR branch/diff through its installed app | Secrets, unrelated repos, raw `.env`, tokens |
-| Codex | Ephemeral authorized checkout, normalized manifest, exact schema excerpts, official guidance, confirmed evidence, test commands | Provider/customer production credentials, other repos, secret store contents |
-| GitHub | Branch commits, draft PR evidence, check summaries | OpenAI/Greptile keys, unredacted logs |
-
-The dashboard must disclose this boundary during installation. Log an explicit
-authorization record containing GitHub installation/repository IDs and time.
+| oasdiff process | Immutable official spec bytes and local config | Credentials or consumer source |
+| Greptile | Repository already authorized in Greptile, bounded manifest terms, and the real PR/diff | Secrets, unrelated repositories, `.env*`, tokens, raw local artifacts |
+| Codex | Disposable checkout, manifest, exact schema excerpts, official guidance, confirmed evidence, repository instructions, allowlisted checks | Provider credentials, GitHub/Greptile tokens, unrelated source, secret files |
+| GitHub | TetherIn branch commits, draft PR body, and redacted evidence summaries | OpenAI/Greptile keys, raw transcripts, unredacted command logs |
+| Local SQLite/artifacts | Digests, redacted evidence, state, IDs, timestamps, bounded excerpts | Tokens, raw `.env*`, full KB documents, raw model transcripts |
 
 ## Principal threats and controls
 
 | Threat | Required control | Verification |
 | --- | --- | --- |
-| Unauthorized repo access | GitHub App installation token scoped to one installation and selected repository; verify repository node ID on every job | Denied-repo integration test; audit authorization event |
-| Excessive GitHub permissions | App permissions: Metadata read, Contents read/write, Pull requests read/write, Checks/Actions/Commit statuses read as actually needed; no Administration/Members/Secrets/Environments/Merge permission | Installation manifest snapshot and permission assertion test |
-| Prompt injection in specs/source/KB/comments | Delimit all external text as untrusted data; fixed orchestration prompt; no secret-bearing tools; command allowlist; ignore instructions embedded in evidence | Adversarial fixture attempts file exfiltration/test bypass |
-| Secret exfiltration | Empty job environment except short-lived scoped tokens; redact secret patterns; mount credentials outside checkout; network deny-by-default | Canary-secret test produces no output/artifact hit |
-| Supply-chain substitution | Immutable commits/versions plus SHA-256 for oasdiff/specs/actions; lockfile after integration | Checksum failure test stops before execution |
-| OpenAPI external-reference fetch | Disable remote refs by default; explicit HTTPS host allowlist, size/time limits, content hashes if required | Malicious `$ref` fixture cannot reach metadata/private IPs |
-| Malicious archive/path traversal | Verify archive hash, inspect entries, extract only expected executable/LICENSE into a fresh cache | Traversal fixture rejected |
-| Cross-tenant cache leak | Content-addressed cache with tenant-independent public specs only; consumer artifacts tenant/job scoped and encrypted | Tenant isolation test |
-| Stale or wrong-base migration | Pin consumer base SHA; compare before push/PR; reject drift or rebase through a new job | Base advances during job test |
-| Duplicate branches/PRs | Unique idempotency key and per-repo lock; search existing branch/PR by job marker | Duplicate webhook/retry test creates one PR |
-| Force overwrite of human work | Never force-push; verify branch ownership marker and expected head | Human commit causes `needs-input` |
-| Test weakening | Diff policy flags removed/skipped tests, config relaxations, or snapshots unrelated to manifest; Greptile independent review | Fixture where agent disables a test fails gate |
-| Stale Greptile review | Require completed review for exact current PR head and `hasNewCommitsSinceReview=false` | Push-after-review test returns pending |
-| Fabricated fixture evidence | Persist `executionMode`; fixture banner and gate policy prevent live-ready | Fixture report cannot enter `READY_FOR_HUMAN` |
-| Automatic unsafe merge | No merge API in orchestrator capability; branch protection/human review | Capability/permission assertion test |
+| Wrong repository | Canonicalize absolute path; reject Tether root, ancestors, symlink escapes, wrong remote, wrong base, dirty tree, or detached unexpected SHA | Setup matrix covers every rejection |
+| GitHub credential leakage | Call `gh auth status` and `gh auth token` in a scrubbed child process; never print, persist, or pass token as a command argument | Canary token absent from logs, DB, artifacts, prompts, and PR body |
+| Prompt injection in specs/source/KB/comments | Delimit as untrusted data; fixed prompt and tool policy; no secret-bearing tools; command/path allowlists | Adversarial fixture cannot execute, expand access, or mark itself trusted |
+| Secret exfiltration | Scrub child environments; deny `.env*`, credential stores, home-directory traversal, and unrelated files; cap output and redact before persistence | Canary secret scan across every retained artifact |
+| Supply-chain substitution | Exact versions, immutable commits, SHA-256 checks, committed `bun.lock`, and preserved notices | Hash mismatch stops before diff or execution |
+| OpenAPI remote references | Disable by default; if required, allow only declared HTTPS host/path with size, redirect, timeout, and hash rules | Private-IP and path-switch fixtures are rejected |
+| Archive traversal | Inspect entries and expected files before extraction into fresh `.tetherin/tools/<digest>` | Absolute, parent, symlink, and oversized entries fail |
+| Unsafe command composition | Spawn argument arrays without a shell; exact executable and command allowlists; timeout and output caps | Metacharacter fixtures remain literal arguments |
+| Human work overwritten | Unique branch marker, expected-head checks before commit/push/PR update, no force push | Added human commit yields `NEEDS_INPUT` |
+| Duplicate branch or PR | Stable idempotency key, one local lease, persisted side-effect receipt, lookup by marker before create | Crash/retry converges on one branch and one PR |
+| Stale checks or review | Bind every result to exact consumer and PR head; compare base/head before review and validation | Push-after-test/review invalidates proof |
+| Test weakening | Diff policy rejects skipped/removed checks, broad snapshot churn, config relaxation, and unrelated changes | Fault fixture fails before push |
+| Fabricated evidence | Persistent `live`, `fixture`, or `retained-real` origin; fixed fixture texture/label; fixture gate cannot pass | Fixture run never reaches live `PR_READY` |
+| Unsafe merge | No merge method, command, token scope, or UI action exists | Capability test and source search find no merge path |
+| Local artifact disclosure | `.tetherin/` ignored, user-only permissions, bounded retention, redacted excerpts, explicit purge for the selected run | Permission and retention tests plus repository status check |
 
-## Job lifecycle
+## Safe local lifecycle
 
-1. Mint a short-lived GitHub installation token for one repository.
-2. Create an empty ephemeral volume; clone exact base SHA without persisted
-   credentials.
-3. Materialize only the manifest/evidence needed for the job.
-4. Run deterministic analysis, Codex, and allowlisted tests with bounded CPU,
-   memory, disk, and time.
-5. Scan/redact output and inspect the diff before minting a separate short-lived
-   write token for branch push/PR creation.
-6. Revoke/expire tokens, destroy the volume, and retain only content digests,
-   redacted evidence, source links, IDs, and audit events according to policy.
+1. `bun run setup` validates tools and configuration without printing secret
+   values. It proves the consumer path, remote, base, and clean worktree.
+2. The runner acquires a bounded SQLite lease and creates a disposable worktree
+   only under the configured run directory.
+3. Person A materializes immutable spec evidence. Person B analyzes the frozen
+   consumer base. Codex receives the smallest allowed context.
+4. Local checks run with bounded time, output, disk, and processes. The diff is
+   inspected before any remote write.
+5. `git` pushes a new owned branch without force; `gh` creates or finds the one
+   draft PR by stable marker.
+6. Greptile and checks bind to the current head. A changed head invalidates old
+   proof. The final UI states that human merge is still required.
+7. On shutdown, the runner releases or expires its lease, kills child process
+   groups, removes disposable worktrees, and retains only policy-allowed
+   redacted evidence.
 
-## Logging and retention
+## Recovery boundary
 
-Never log request authorization headers, private keys, source file bodies,
-customer prompts, raw model transcripts, or full Greptile KB documents. The MVP
-stores redacted excerpts only when necessary to explain a migration, and always
-stores a digest. Make retention configurable; deletion removes customer payloads
-but retains minimal immutable security/audit metadata when legally permitted.
+The reset command must accept a run ID, then resolve the configured consumer path
+and branch from SQLite. It refuses arbitrary paths, Tether root, unknown remotes,
+unowned branches, human commits, dirty state, or a missing typed confirmation.
+It may remove only that run's disposable worktree and restore only the dedicated
+demo checkout to its recorded base using non-force Git operations. Remote branch
+or PR cleanup is a separate explicit operator step and never happens implicitly.

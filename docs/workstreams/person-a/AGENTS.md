@@ -20,7 +20,7 @@ You may create or change only:
 - `docs/workstreams/person-a/HANDOFF.md`
 
 Do not edit root files, `contracts/**`, apps, Person B/C packages or plans, or
-`pnpm-lock.yaml`. If a shared contract/config change is necessary, put a precise
+`bun.lock`. If a shared contract/config change is necessary, put a precise
 proposal in `HANDOFF.md`; Person C applies it after integration.
 
 ## Non-negotiable behavior

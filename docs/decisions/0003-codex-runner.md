@@ -1,42 +1,44 @@
-# ADR 0003: Use the Codex SDK behind a TetherIn migration adapter
+# ADR 0003: Use the local Codex SDK behind a bounded adapter
 
 - Status: accepted
 - Date: 2026-08-23
 
 ## Decision
 
-Use the official server-side [`@openai/codex-sdk`](https://developers.openai.com/codex/sdk)
-as the default `MigrationAgent`. Person C pins the package version (planning
-research anchor: `0.149.0`) and runs it in an ephemeral, isolated checkout with
-workspace-write access, no customer secrets, restricted network, bounded time,
-and an explicit allowlist of test commands.
+Use the official server-side
+[`@openai/codex-sdk`](https://developers.openai.com/codex/sdk/) behind Person C's
+`MigrationAgent` adapter. The official documentation says the TypeScript SDK
+starts, continues, and resumes local Codex threads and requires Node 18+. Bun
+remains the only operator entry point; the local supervisor launches a narrow
+Node 22.18+ sidecar for the SDK and communicates through a typed local protocol.
 
-The official [`openai/codex-action@v1`](https://developers.openai.com/codex/github-action)
-is an optional deployment adapter. If enabled, pin the action to the immutable
-commit behind v1 (planning anchor:
-`86365089eb2b84e0a8fb0717b304f8bdcb13b20e`), use `persist-credentials: false`,
-the narrowest sandbox, trusted trigger users, and separate write/post steps.
+The adapter runs Codex inside a disposable worktree derived from the validated
+consumer base. It receives only the manifest, exact schema excerpts, official
+guidance, confirmed evidence, repository instructions, and allowlisted test
+commands. It gets no GitHub, Greptile, merge, or secret-bearing tool.
 
 ## Why
 
-The SDK is documented for embedding Codex in an application and CI/CD. It lets
-TetherIn own one observable state machine, retain thread/run evidence, and
-perform follow-up turns after Greptile review. A GitHub workflow remains useful
-for customers that require execution inside their own runner, but it must not
-become a second hidden orchestrator.
-
-We do not add another workflow framework in the hackathon path. In particular,
-no release-sync framework may obscure oasdiff provenance, the Greptile evidence
-boundary, or TetherIn's persisted job state.
+The SDK is the documented way to embed local Codex threads in an application.
+Keeping the adapter behind the same local state machine preserves exact prompts,
+bounded follow-up turns, diff inspection, and auditable results. The sidecar is
+an honest compatibility boundary because the official SDK documentation names
+Node, not Bun, as its supported server runtime.
 
 ## Guardrails
 
-- Supply only the normalized manifest, exact schema excerpts, official guidance,
-  confirmed evidence, and repository instructions needed for this migration.
-- Never provide provider/customer credentials to the agent.
-- Reject edits outside the allowlisted checkout and validate the resulting diff.
-- Codex may commit to its job branch but may not merge, change branch protection,
-  weaken tests, or silence the validation gate.
-- A follow-up run receives exact Greptile comments as untrusted evidence and a
-  scoped instruction to address or explain them; it does not blindly apply
-  suggested code.
+- Pin the SDK version in `bun.lock` and record it in every run.
+- Create a fresh disposable checkout with an explicit absolute root and reject
+  edits, symlink escapes, or generated changes outside allowlisted paths.
+- Limit prompt bytes, changed files, changed lines, wall time, command count,
+  output bytes, disk, and concurrent processes.
+- Start with a scrubbed environment. Never include `.env*`, credentials,
+  unrelated source, raw KB documents, or provider/customer secrets.
+- Treat specs, source, and review comments as untrusted quoted data. They cannot
+  change tool, path, network, or command policy.
+- Reject test disabling, broad snapshots, config weakening, dependency churn,
+  unrelated refactors, and business-semantic guesses.
+- Allow at most two total Codex edit passes: the initial migration and one
+  review-driven follow-up. A second blocked review becomes `NEEDS_INPUT`.
+- Codex may commit only to the owned local branch. It may not push, open or merge
+  a PR, change protections, or resolve Greptile comments.
