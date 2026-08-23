@@ -3,12 +3,15 @@
 ## Handoffs and dependency graph
 
 - [ ] Start from the exact `PLANNING_BASE_SHA`; record it in the final handoff.
-- [ ] Fetch and verify remote Person B branch head is exactly
+- [ ] Fetch and verify Person A branch head is exactly
+      `da15ba9778ce07c6178a4af4eb42f44fdd7a1fc3`, merge it first, then verify
+      Person B branch head is exactly
       `57a602ba9de7357fd0385f20e23460b8642b74a9`; merge it and run its actual Bun
-      checks. Record that its handoff had no live Greptile smoke.
-- [ ] Scaffold provider input only from the labeled committed manifest fixture
-      while A is pending. Merge A only from a coordinator-confirmed immutable
-      SHA, then run A checks. Final live completion requires A.
+      checks. Run A's actual format, lint, type, unit, fixture, build, and
+      opt-in live adapter commands. Record that B had no live Greptile smoke.
+- [ ] Keep the root `ajv@8.20.0` override: the isolated A+B Bun merge otherwise
+      installs A's 8.17.1 and B/root's 8.20.0 simultaneously and fails A's
+      strict typecheck. Re-run both suites after lock generation.
 - [ ] Preserve B's public APIs and algorithms; add only explicit C-owned build or
       Node-sidecar glue if its no-build-script/Bun compatibility gates require it.
 - [ ] Resolve no shared behavior by reimplementing either package.
@@ -63,8 +66,8 @@
       diagnostics from real persisted data.
 - [ ] Exercise empty, loading, pending, degraded, failed, needs-input, fixture,
       retained-real, and live-ready states with no fake metric or finding.
-- [ ] Complete one real golden path, preferably a valid Stripe version or
-      deprecation change, otherwise the proven OpenAI `geography` removal.
+- [ ] Complete the real OpenAI `geography` removal golden path. Keep Stripe and
+      Twilio as honest adapter/contract tests, not claimed live migrations.
 - [ ] Retain one genuine successful run and PR as an immutable async fallback;
       rehearse the exact three-minute script from `docs/demo/golden-path.md`.
 - [ ] Test guarded recovery only against the dedicated demo repository.

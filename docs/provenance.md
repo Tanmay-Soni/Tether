@@ -43,7 +43,8 @@ service file across revisions or build a deterministic documented bundle.
 - New commit: <https://github.com/openai/openai-openapi/commit/f85dbe223d40e1a31cba812ab2d755c7e98a92a3>
 - Old spec SHA-256: `a85b8a1274f0f65bcddbb8762993da9075846e2c97a5c81cf6822c9568038c33`
 - New spec SHA-256: `db5d7478feae10b4d331834c60d9765a8aa042e38419f9b1694288c11aa8ebc8`
-- Retained pretty JSON SHA-256: `b379acf15f4b0663c43da2701b387acaa9924c11e8005a2a3cea9be521fe9746`
+- Retained pretty JSON SHA-256: `07640494838ec2e0ebce6af7098cf6e46fd269999e051aa6fa2d694e837ee382`
+- Person A canonical manifest SHA-256: `b4458eec684a821e95199debdd9b0c1a4aafad4b10b83bc88f357809413ddcad`
 
 ## Codex
 

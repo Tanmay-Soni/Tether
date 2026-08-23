@@ -86,6 +86,9 @@ test "$(jq -r '.properties.provider.enum | join(",")' contracts/migration-manife
 grep -q 'oasdiff/oasdiff/releases/tag/v1.29.1' docs/provenance.md
 grep -q 'search_knowledge_base' docs/research/greptile-capabilities.md
 grep -q '57a602ba9de7357fd0385f20e23460b8642b74a9' docs/workstreams/person-c/README.md
+grep -q 'da15ba9778ce07c6178a4af4eb42f44fdd7a1fc3' docs/workstreams/person-c/README.md
+test "$(jq -r '.overrides.ajv' package.json)" = "8.20.0"
+test "$(jq -r '.engine.rawOutputSha256' contracts/examples/openai-geography.manifest.json)" = "07640494838ec2e0ebce6af7098cf6e46fd269999e051aa6fa2d694e837ee382"
 grep -q 'DESIGN_VARIANCE=5' docs/design/dashboard.md
 grep -q 'MOTION_INTENSITY=4' docs/design/dashboard.md
 grep -q 'VISUAL_DENSITY=6' docs/design/dashboard.md
@@ -95,7 +98,9 @@ if rg -n -i \
   'pnpm|corepack|DATABASE_URL|GITHUB_APP_ID|GITHUB_WEBHOOK_SECRET|docker compose|postgresql|installation token|webhook receiver' \
   README.md AGENTS.md .env.example docs/architecture docs/decisions docs/demo \
   docs/design docs/git-strategy.md docs/integration-checklist.md docs/security \
-  docs/workstreams/person-a docs/workstreams/person-b docs/workstreams/person-c; then
+  docs/workstreams/person-a/README.md docs/workstreams/person-a/AGENTS.md \
+  docs/workstreams/person-b/README.md docs/workstreams/person-b/AGENTS.md \
+  docs/workstreams/person-c/README.md docs/workstreams/person-c/AGENTS.md; then
   echo "obsolete runtime architecture reference found outside scoped research" >&2
   exit 1
 fi

@@ -2,6 +2,11 @@
 
 This is the complete work package for Person A. It requires no chat history.
 
+> Completed handoff: remote branch `origin/person-a/provider-diff` is pinned at
+> `da15ba9778ce07c6178a4af4eb42f44fdd7a1fc3`. The implementation and its
+> `HANDOFF.md` live on that branch, not current planning `main`. Do not start a
+> duplicate Person A implementation. Person C merges this exact SHA before B.
+
 ## Mission
 
 Build an implementation-ready provider ingestion package that fetches immutable

@@ -10,11 +10,11 @@ context.
 ## Start rule
 
 Start exactly `person-c/integration` from `PLANNING_BASE_SHA`. Merge verified
-Person B commit `57a602ba9de7357fd0385f20e23460b8642b74a9` with `--no-ff`, run its
-actual Bun suite, and scaffold provider input from the committed OpenAI manifest
-fixture while Person A is pending. Merge A only from a coordinator-confirmed
-immutable SHA, run its suite, and record all SHAs. Do not inspect mutable
-workstream branches or recreate their behavior from plans.
+Person A commit `da15ba9778ce07c6178a4af4eb42f44fdd7a1fc3`, then verified Person B
+commit `57a602ba9de7357fd0385f20e23460b8642b74a9`, both with `--no-ff`. Apply the
+C-owned AJV resolution pin, regenerate `bun.lock`, run both actual Bun suites,
+and record all SHAs. Do not use moving branch tips or recreate either behavior
+from plans.
 
 ## Ownership
 

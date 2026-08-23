@@ -8,16 +8,15 @@ must be executable without chat context.
 
 | Assignment | Read in order | Branch |
 | --- | --- | --- |
-| Person A | `docs/workstreams/BASELINES.md`, `docs/workstreams/person-a/AGENTS.md`, then its `README.md` | `person-a/provider-diff` |
+| Person A | Completed: verify `da15ba9778ce07c6178a4af4eb42f44fdd7a1fc3`; read its remote `HANDOFF.md` | `person-a/provider-diff` |
 | Person B | Completed: verify `57a602ba9de7357fd0385f20e23460b8642b74a9`; read its remote `HANDOFF.md` | `person-b/greptile-evidence` |
 | Person C | `docs/workstreams/BASELINES.md`, `docs/workstreams/person-c/AGENTS.md`, then its `README.md` and `docs/design/dashboard.md` | `person-c/integration` |
 
-All not-yet-started agents use the immutable `PLANNING_BASE_SHA` recorded on
-current `main`. Person B is complete at remote commit
-`57a602ba9de7357fd0385f20e23460b8642b74a9`. C may merge that exact SHA and
-scaffold against the committed manifest fixture while A is pending, but final
-completion requires the coordinator-confirmed A SHA. C integrates rather than
-reimplementing either package.
+Person A and Person B are complete at remote commits
+`da15ba9778ce07c6178a4af4eb42f44fdd7a1fc3` and
+`57a602ba9de7357fd0385f20e23460b8642b74a9`. Person C starts from the immutable
+`PLANNING_BASE_SHA` on current `main`, merges A then B by exact SHA, and consumes
+their public packages. Do not duplicate either implementation.
 
 ## Product invariants
 

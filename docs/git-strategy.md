@@ -1,45 +1,57 @@
 # Git strategy and handoff protocol
 
-All new implementation work starts from the exact `PLANNING_BASE_SHA` recorded
-in `docs/workstreams/BASELINES.md`. Never start Person A from Person B or vice
-versa. Use separate clones or worktrees.
+Person A and Person B are complete, pushed, and immutable. Person C starts from
+the exact `PLANNING_BASE_SHA` recorded in `docs/workstreams/BASELINES.md`, then
+merges A before B. Use a separate clone or worktree and never force push.
 
-## Current handoff state
+## Verified handoffs
 
 ```text
+Person A branch  origin/person-a/provider-diff
+Person A SHA     da15ba9778ce07c6178a4af4eb42f44fdd7a1fc3
+Person A base    37472c40de06251bf5a49b53239f912471a9b8f9
 Person B branch  origin/person-b/greptile-evidence
 Person B SHA     57a602ba9de7357fd0385f20e23460b8642b74a9
 Person B base    37472c40de06251bf5a49b53239f912471a9b8f9
-Person A SHA     pending coordinator confirmation
 ```
 
-Remote inspection on 2026-08-23 found the one Person B implementation commit
-above and no PR. The branch is pushed. Its `HANDOFF.md`, public exports,
-dependencies, tests, and limitations are summarized in Person C's README.
-
-## Branch topology
+Remote inspection on 2026-08-23 found both branches and no open or closed PR.
+Their `HANDOFF.md` files, exact exports, dependencies, results, and limitations
+are summarized in Person C's README. A then B was merge-tested in an isolated
+worktree with no conflicts.
 
 ```text
-main @ current planning record
-├── person-a/provider-diff @ PLANNING_BASE_SHA, handoff pending
+main @ local-only planning record
+├── person-a/provider-diff @ da15ba9, complete
 ├── person-b/greptile-evidence @ 57a602b, complete
 └── person-c/integration @ PLANNING_BASE_SHA
-      merge --no-ff 57a602b now
-      scaffold against labeled manifest fixture
-      merge --no-ff A_HANDOFF_SHA when coordinator confirms it
+      merge --no-ff da15ba9
+      merge --no-ff 57a602b
+      regenerate bun.lock and verify both
       complete local application and demo
 ```
 
-Person C verifies B by SHA, never by a moving branch alone:
+## Exact integration sequence
 
 ```bash
 git fetch origin --tags
 git switch --detach <PLANNING_BASE_SHA>
 git switch -c person-c/integration
-git fetch origin person-b/greptile-evidence
+git fetch origin person-a/provider-diff person-b/greptile-evidence
+test "$(git rev-parse origin/person-a/provider-diff)" = "da15ba9778ce07c6178a4af4eb42f44fdd7a1fc3"
 test "$(git rev-parse origin/person-b/greptile-evidence)" = "57a602ba9de7357fd0385f20e23460b8642b74a9"
+git merge --no-ff da15ba9778ce07c6178a4af4eb42f44fdd7a1fc3
 git merge --no-ff 57a602ba9de7357fd0385f20e23460b8642b74a9
 bun install
+
+bun run --filter @tetherin/provider-pipeline format:check
+bun run --filter @tetherin/provider-pipeline lint
+bun run --filter @tetherin/provider-pipeline typecheck
+bun run --filter @tetherin/provider-pipeline test
+bun run --filter @tetherin/provider-pipeline test:fixture
+bun run --filter @tetherin/provider-pipeline build
+bun run --filter @tetherin/provider-pipeline test:live
+
 bun run --filter @tetherin/greptile format:check
 bun run --filter @tetherin/greptile lint
 bun run --filter @tetherin/greptile typecheck
@@ -47,47 +59,29 @@ bun run --filter @tetherin/greptile test
 bun run --filter @tetherin/greptile test:fixtures
 ```
 
-Person A remains independent. C may build state, UI, and orchestration against
-the committed OpenAI manifest fixture, but may not fabricate A exports or claim
-a live provider pipeline. When the coordinator supplies the exact A SHA:
+The root planning baseline pins `overrides.ajv = "8.20.0"`. Keep it. Without
+that C-owned resolution, Bun installs A's AJV 8.17.1 beside B/root's 8.20.0 and
+A's strict typecheck fails at the ajv-formats boundary. The override was tested
+against A's 111 unit tests, 8 checksum-backed fixture tests, build, and 3 live
+adapter tests plus B's 11 unit and 1 fixture tests.
 
-```bash
-git fetch origin person-a/provider-diff
-test "$(git rev-parse origin/person-a/provider-diff)" = "<PERSON_A_HANDOFF_SHA>"
-git merge --no-ff <PERSON_A_HANDOFF_SHA>
-bun install
-bun run --filter @tetherin/provider-pipeline format:check
-bun run --filter @tetherin/provider-pipeline lint
-bun run --filter @tetherin/provider-pipeline typecheck
-bun run --filter @tetherin/provider-pipeline test
-bun run --filter @tetherin/provider-pipeline test:fixture
-```
+`test:live` reads immutable official provider sources and remains opt-in for the
+final product suite. It passed during planning integration. No live Greptile
+smoke was possible because no authorized key/repository review context was
+available; Person C must run it during live setup.
 
-## Ownership and lock rule
+## Ownership and conflicts
 
-Person A and B commit only owned package/fixture directories and their handoff
-notes. They do not update the root lock or another workstream's plan. Person C
-owns root Bun integration and final `bun.lock`. B's commit was tested with an old
-Node/package-manager environment and has no package build script, so C must add
-explicit runtime packaging glue and run the actual B tests under Bun without
-changing B's evidence or gate algorithms.
+Person A owns its provider package/fixtures/handoff. Person B owns its Greptile
+package/fixtures/handoff. Person C owns root Bun integration, AJV resolution,
+`bun.lock`, B's missing public build/import glue, application packages, and
+coordinated shared docs/contracts. Do not modify A/B algorithms to fix packaging.
 
-A shared contract change is an exact versioned handoff proposal. Person C
-coordinates the patch after integration. Integration conflicts outside root
-configuration indicate an ownership violation and must not be resolved by
-silently dropping behavior.
+The verified A-then-B merge had no conflicts. A future conflict outside root
+configuration or shared coordination files indicates an ownership violation;
+stop and inspect both sides rather than silently dropping behavior. Do not squash
+the handed-off commits, rebase them, or replace an exact SHA with moving `main`.
 
-## Handoff commit contents
-
-Each implementation branch ends with one immutable handoff containing:
-
-- implementation and focused tests green;
-- exact planning/handoff SHAs, commands, and results;
-- exported API summary and schema versions consumed/produced;
-- dependency versions and licenses;
-- fixture/live labels and live smoke status;
-- known limitations and proposed shared changes;
-- `git diff --check` clean and no secrets.
-
-No handed-off branch may be force-pushed. Person C records both handoff SHAs in
-its integration PR and does not squash them away.
+Each final handoff records exact parent SHAs, exported contracts, dependency and
+license changes, fixture/live labels, commands/results, limitations, a clean
+`git diff --check`, and no secrets.

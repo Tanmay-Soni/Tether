@@ -96,8 +96,8 @@ semantic blast-radius endpoint. See the
 
 | Provider | Official source | License | Hackathon role |
 | --- | --- | --- | --- |
-| OpenAI | [`openai/openai-openapi`](https://github.com/openai/openai-openapi) | MIT | Proven fallback: real `geography` removal across two immutable commits. |
-| Stripe | [`stripe/openapi`](https://github.com/stripe/openapi) | MIT | Preferred hero only if an explicit version or deprecation migration passes the fixture rubric. |
+| OpenAI | [`openai/openai-openapi`](https://github.com/openai/openai-openapi) | MIT | Selected hero: real `geography` removal across two immutable commits. |
+| Stripe | [`stripe/openapi`](https://github.com/stripe/openapi) | MIT | Adapter tested; researched deprecation pair yields no semantic oasdiff change and is not hero-eligible. |
 | Twilio | [`twilio/twilio-oai/spec/yaml`](https://github.com/twilio/twilio-oai/tree/main/spec/yaml) | MIT | Adapter and contract tests. |
 
 Only one live end-to-end path is required. All three adapters receive unit and
@@ -107,33 +107,32 @@ retained genuine fallback, and scoped recovery.
 
 ## Workstreams
 
-Person B completed its independent branch from the earlier immutable base and is
-pinned by exact SHA below. Any not-yet-started Person A or C agent uses the new
-base in `BASELINES.md`. C merges exact B now, may scaffold against the committed
-manifest fixture while A is pending, and delivers the full product only after A
-also hands off.
+Person A and Person B completed independent branches from the earlier immutable
+base and are pinned below. Person C uses the new base in `BASELINES.md`, merges
+A then B by exact SHA, preserves both commit histories, and owns only the
+integration glue and product.
 
 | Person | Status | Mission | Owned output | Start here |
 | --- | --- | --- | --- | --- |
-| A | Awaiting immutable handoff | Provider ingestion, immutable specs, oasdiff, normalization | `packages/provider-pipeline/**`, provider fixtures and tests | [`docs/workstreams/person-a`](docs/workstreams/person-a/README.md) |
+| A | Complete at `da15ba9778ce07c6178a4af4eb42f44fdd7a1fc3` | Provider ingestion, immutable specs, oasdiff, normalization | `packages/provider-pipeline/**`, provider fixtures and tests | [`docs/workstreams/person-a`](docs/workstreams/person-a/README.md) |
 | B | Complete at `57a602ba9de7357fd0385f20e23460b8642b74a9` | Greptile evidence, deterministic confirmation, PR review, validation | `packages/greptile/**`, Greptile fixtures and tests | [`docs/workstreams/person-b`](docs/workstreams/person-b/README.md) |
 | C | Planned | Local runtime, dashboard, SQLite, Codex, Git and GitHub PR flow, E2E demo | `apps/**`, integration packages, root tooling and final lockfile | [`docs/workstreams/person-c`](docs/workstreams/person-c/README.md) |
 
 Read [`docs/workstreams/BASELINES.md`](docs/workstreams/BASELINES.md) for the
-exact planning SHA and merge order. In a separate checkout, start only the
-assigned branch:
+exact planning SHA and A-then-B merge order. Person A and B are complete; the
+remaining implementation branch starts in a separate checkout:
 
 ```bash
 git fetch origin --tags
 git switch --detach <PLANNING_BASE_SHA>
-git switch -c person-a/provider-diff
-# In other checkouts: person-b/greptile-evidence or person-c/integration.
-bun install --no-save
+git switch -c person-c/integration
+# Verify and merge the exact A and B SHAs from BASELINES.md, then:
+bun install
 ```
 
-A and B do not commit `bun.lock`; Person C regenerates and commits the single
-root lock after merging their handoffs. This keeps the parallel branches
-independent while every workstream uses Bun commands.
+A and B did not commit `bun.lock`; Person C regenerates and commits the single
+root lock after merging their handoffs. The planning baseline includes a tested
+root AJV resolution pin required for their combined Bun graph.
 
 ## Configuration contract
 

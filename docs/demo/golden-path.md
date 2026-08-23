@@ -5,12 +5,9 @@ This is a Person C implementation and rehearsal contract. Commands marked
 
 ## Select one real change
 
-Prefer Stripe only when Person A identifies an official version or deprecation
-pair that produces a compact, reproducible oasdiff result and maps cleanly to
-believable consumer code. Stripe's normal versioning model must be stated; do
-not imply an unannounced break.
-
-Otherwise use the proven OpenAI fixture:
+Person A completed its provider research. The Stripe historical deprecation pair
+produces `[]` in both oasdiff modes and the Twilio fixture is byte-identical, so
+neither is hero-eligible. Use the proven real OpenAI change:
 
 ```text
 old 13c6a94fca988f8be3c5de09d73f012709985d10

@@ -5,6 +5,15 @@ directory completely before editing. The phrase "Do Person A's work end-to-end"
 authorizes every task and verification step in that README, but not Person B or
 Person C work.
 
+## Completed status
+
+Person A is already handed off at remote commit
+`da15ba9778ce07c6178a4af4eb42f44fdd7a1fc3` on
+`origin/person-a/provider-diff`. If asked to do Person A without an explicit
+change request, fetch the remote, verify that exact head and clean handoff, and
+report completion. Do not create a duplicate branch or rewrite the handed-off
+commit.
+
 ## Start rule
 
 Read `../BASELINES.md`, verify `git rev-parse HEAD` equals its

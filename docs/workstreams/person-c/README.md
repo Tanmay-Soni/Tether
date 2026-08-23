@@ -55,11 +55,11 @@ Required system tools:
 - an authenticated `gh` session with write access to the dedicated demo repo;
 - an absolute, separate, clean checkout of that repo;
 - OpenAI and Greptile credentials for live mode only;
-- the verified Person B handoff SHA below; Person A may still be pending.
+- the verified Person A and Person B handoff SHAs below.
 
 Read `../BASELINES.md`, copy `PLANNING_BASE_SHA`, and verify it is on
-`origin/main`. Person B is a concrete completed input. Fetch and prove its exact
-remote head before merging:
+`origin/main`. Both inputs are complete. Fetch and prove exact remote heads,
+then merge A before B:
 
 ```bash
 git fetch origin --tags
@@ -67,30 +67,122 @@ git cat-file -e <PLANNING_BASE_SHA>^{commit}
 git switch --detach <PLANNING_BASE_SHA>
 git switch -c person-c/integration
 
-git fetch origin person-b/greptile-evidence
+git fetch origin person-a/provider-diff person-b/greptile-evidence
+test "$(git rev-parse origin/person-a/provider-diff)" = "da15ba9778ce07c6178a4af4eb42f44fdd7a1fc3"
 test "$(git rev-parse origin/person-b/greptile-evidence)" = "57a602ba9de7357fd0385f20e23460b8642b74a9"
+git merge --no-ff da15ba9778ce07c6178a4af4eb42f44fdd7a1fc3
 git merge --no-ff 57a602ba9de7357fd0385f20e23460b8642b74a9
 bun install
+bun run --filter @tetherin/provider-pipeline format:check
+bun run --filter @tetherin/provider-pipeline lint
+bun run --filter @tetherin/provider-pipeline typecheck
+bun run --filter @tetherin/provider-pipeline test
+bun run --filter @tetherin/provider-pipeline test:fixture
+bun run --filter @tetherin/provider-pipeline build
+bun run --filter @tetherin/provider-pipeline test:live
+bun run --filter @tetherin/greptile format:check
+bun run --filter @tetherin/greptile lint
+bun run --filter @tetherin/greptile typecheck
 bun run --filter @tetherin/greptile test
 bun run --filter @tetherin/greptile test:fixtures
 ```
-
-Person A is independent and may not yet have a remote handoff. Begin C scaffolding
-with the checked-in `contracts/examples/openai-geography.manifest.json`; label it
-fixture input. Once the coordinator supplies A's immutable SHA, fetch it, verify
-its branch head, merge it with `--no-ff`, run A's actual Bun acceptance commands,
-and replace fixture plumbing with its public provider API. Do not choose a local
-or ambiguous A commit. Final live completion still requires A.
 
 Inspect both handoff notes and confirm ownership, schema versions, dependency
 licenses, fixture/live labels, test results, and limitations. If A changes a
 shared contract without a versioned proposal, stop with a concrete integration
 blocker. Do not substitute a local stub and call it done.
 
+## Verified completed Person A input
+
+Remote inspection on 2026-08-23 found this completed branch and no open or
+closed PR:
+
+```text
+branch       origin/person-a/provider-diff
+head         da15ba9778ce07c6178a4af4eb42f44fdd7a1fc3
+base         37472c40de06251bf5a49b53239f912471a9b8f9
+implementation cd9a06f
+fixtures       ac9cfc2
+handoff        da15ba9
+```
+
+It changes only `packages/provider-pipeline/**`, `fixtures/providers/**`, and
+`docs/workstreams/person-a/HANDOFF.md`. Its real public package exports
+`createProviderAdapter`, `createOasdiffEngine`, `buildMigrationManifest`,
+`getNormalizationDiagnostics`, `PipelineError`, and the provider, revision,
+diff, change, guidance, and diagnostic types. Invoke it exactly as follows:
+
+```ts
+const adapter = createProviderAdapter(provider);
+const oldRevision = await adapter.resolveRevision(oldRef, providerSelection);
+const newRevision = await adapter.resolveRevision(newRef, providerSelection);
+const oldSpec = await adapter.materialize(oldRevision, specCacheDir);
+const newSpec = await adapter.materialize(newRevision, specCacheDir);
+
+const comparison = await createOasdiffEngine({
+  cacheDir: toolCacheDir,
+}).compare({
+  oldSpec,
+  newSpec,
+  mode: "breaking",
+  artifactDir,
+  signal,
+});
+
+// Persist comparison.rawArtifactPath/rawSha256/rawMode first. An empty
+// rawChanges array is an honest no-change workflow outcome, not a v1 manifest.
+if (comparison.rawChanges.length === 0) return recordNoChange(comparison);
+
+const manifestUnknown = await buildMigrationManifest({
+  provider: adapter.provider,
+  oldSpec,
+  newSpec,
+  ...comparison,
+});
+const diagnostics = getNormalizationDiagnostics(manifestUnknown);
+// Capture diagnostics before serialization; this API uses object identity.
+```
+
+Validate `manifestUnknown` as `tetherin.migration-manifest/v1`, canonicalize it,
+and persist its digest before passing the same object content to Person B.
+`compare` is also the runtime install boundary: it resolves the checksum-pinned
+oasdiff 1.29.1 executable. The installer is not a public package export; setup
+must execute A's committed `scripts/install-oasdiff.mjs` or the package's
+`test:fixture` smoke, then exercise `createOasdiffEngine().compare()` through the
+public runtime path. Do not deep-import installer internals.
+
+A pins AJV 8.17.1, ajv-formats 3.0.1, YAML 2.8.1, TypeScript 5.9.2, Vitest
+3.2.4, and Node `>=22.18 <25`; it has a real build script and exports
+`dist/src/index.js`. In the isolated combined A+B worktree, a plain Bun install
+resolved two AJV versions and made A's strict typecheck, fixture compilation,
+and build fail. The C-owned root `overrides.ajv = "8.20.0"` deduplicated AJV
+without changing A source; after that resolution, A passed typecheck, 111 unit
+tests, 8 checksum-backed fixture tests, build, and all 3 opt-in live provider
+adapter tests under Bun 1.4.0. Preserve the override and frozen lock.
+
+A's verified provider boundary is decisive for the demo:
+
+- OpenAI's two official commits yield two real `request-property-removed`
+  findings and canonical manifest SHA-256
+  `b4458eec684a821e95199debdd9b0c1a4aafad4b10b83bc88f357809413ddcad`;
+- Stripe's researched deprecation-prose pair returns `[]` in both oasdiff modes
+  and is not hero-eligible;
+- Twilio's chosen service pair is byte-identical and also returns `[]`.
+
+Use OpenAI for the golden path. All three adapters remain live adapter and
+contract-test coverage. The handoff's prose sample passes raw changes to
+`guidance`, but the actual public type accepts `NormalizedChange[]` while
+normalization accepts optional guidance. Current adapters return `[]`; omit the
+field rather than cast raw changes. Record this public-type mismatch in C's
+handoff and do not alter A's algorithms during integration. Preserve A's other
+limits: v1 cannot encode no-change, unknown oasdiff IDs become `other`, excerpt
+extraction is local-reference-only, and guidance is empty unless backed by a
+validated official source.
+
 ## Verified completed Person B input
 
-Remote inspection on 2026-08-23 found exactly one non-main implementation branch
-and no open or closed PR:
+Remote inspection on 2026-08-23 found this completed branch and no open or
+closed PR:
 
 ```text
 branch  origin/person-b/greptile-evidence
@@ -328,8 +420,10 @@ required live failure:
    below `.tetherin/`; create directories mode `0700` and DB mode `0600`.
 3. Confirm mode. Fixture mode reports missing OpenAI/Greptile keys as expected;
    live mode checks presence without printing length, prefix, or value.
-4. Invoke Person A's installer API for exact `OASDIFF_VERSION`, verify archive
-   hash and `oasdiff --version`, then run its committed smoke fixture.
+4. Run Person A's committed `scripts/install-oasdiff.mjs` for exact oasdiff
+   1.29.1, verify archive hash and `oasdiff --version`, then run its committed
+   `test:fixture` smoke and one public `createOasdiffEngine().compare()` call.
+   The installer itself is deliberately not a public package export.
 5. Open SQLite, enable foreign keys and WAL, apply idempotent migrations, verify
    schema version, append/read a temporary setup event in a rollback transaction,
    and confirm a second process can read.
@@ -430,11 +524,14 @@ active live run.
 Validate all A/B outputs again at the boundary even if their packages already
 validated them. Persist contract version and digest.
 
-1. Call Person A with provider, exact old/new revision, and abort signal. Persist
-   raw oasdiff artifact before accepting the normalized manifest.
+1. Use Person A's exact public call flow above with provider, old/new revision,
+   and abort signal. Persist `rawArtifactPath`, `rawSha256`, and `rawMode` before
+   accepting the normalized manifest; capture diagnostics before serialization.
 2. Require official source URL, 40-character commits, spec hashes, oasdiff
    version/raw digest, exact schema excerpts, and supported provider enum.
-3. Call Person B against the frozen consumer base in `live` or `fixture` mode.
+3. Validate A's canonical manifest as `tetherin.migration-manifest/v1`, then
+   pass that exact canonical content to Person B against the frozen consumer
+   base in `live` or `fixture` mode.
    Persist KB availability, truncation, limitations, deterministic coverage,
    every candidate's file/symbol/reason/confidence/confirmation, and report hash.
 4. A KB miss or unavailable rollout never becomes proof of no impact. Continue
@@ -578,9 +675,9 @@ is the single locked pearl/smoke light theme defined in the design contract.
 
 Follow `docs/demo/golden-path.md`.
 
-- Person A still completes and tests all three provider adapters.
-- Select Stripe only for a crisp official version/deprecation change that passes
-  the rubric; otherwise use the proven OpenAI geography removal.
+- Person A completed and tested all three provider adapters.
+- Use the proven OpenAI geography removal. A's Stripe research fixture produces
+  no semantic oasdiff change and Twilio's selected pair is byte-identical.
 - Use a believable dedicated consumer repo containing direct use, wrapper, test,
   and downstream assumption. Never target this Tether repository.
 - Complete and retain one genuine live run/PR as `retained-real`; prepare a
@@ -592,10 +689,10 @@ Follow `docs/demo/golden-path.md`.
 
 ## Implementation order
 
-1. Merge and verify exact Person B commit `57a602b`, add only required runtime
-   packaging glue, and scaffold against the committed manifest fixture. Merge
-   and verify Person A when its coordinator-confirmed handoff arrives. Then pin
-   the final dependency graph and `bun.lock`.
+1. Merge and verify exact Person A commit `da15ba9`, then exact Person B commit
+   `57a602b`. Preserve the root AJV override, add only required B packaging glue,
+   pin the final dependency graph, regenerate `bun.lock`, and run both real Bun
+   suites before product work.
 2. Implement strict config, subprocess/redaction utilities, setup checks, and
    dedicated-repository guards before any write path.
 3. Implement SQLite migrations, immutable event append, projection rebuild,
@@ -675,12 +772,13 @@ reset on the dedicated demo repo, and inspect the real draft PR at its exact hea
 
 Create `docs/workstreams/person-c/HANDOFF.md` containing:
 
-- planning, A handoff, verified B handoff
+- planning, verified A handoff
+  `da15ba9778ce07c6178a4af4eb42f44fdd7a1fc3`, verified B handoff
   `57a602ba9de7357fd0385f20e23460b8642b74a9`, and final commit SHAs;
 - exact package/runtime/tool versions and license notes;
 - final contract versions, database schema version, migrations, and lock digest;
 - operator commands and redacted setup readiness result;
-- selected provider/change and why Stripe or OpenAI was chosen;
+- selected OpenAI change and why A's Stripe/Twilio fixtures were not hero-eligible;
 - consumer repo name, base/head SHAs, branch, draft PR URL, and evidence origin;
 - provider/oasdiff/manifest digests, impact completeness, Codex thread digest,
   check receipts, Greptile ID/status/freshness, and final gate reasons;
