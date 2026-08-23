@@ -25,10 +25,13 @@ function runView(runId: string): Record<string, unknown> | null {
   if (!run) return null;
   return {
     ...run,
-    actions: allowedActions(
-      run.state as WorkflowState,
-      Number(run.followup_count ?? 0),
-    ),
+    actions:
+      run.state === "IMPACT_CONFIRMED"
+        ? []
+        : allowedActions(
+            run.state as WorkflowState,
+            Number(run.followup_count ?? 0),
+          ),
     stages: store.projections(runId).map((entry) => ({
       ...entry,
       summary: JSON.parse(String(entry.summary_json)),

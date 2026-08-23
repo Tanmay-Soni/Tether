@@ -1,23 +1,23 @@
 # Golden-path demo and recovery runbook
 
-This is a Person C implementation and rehearsal contract. Commands marked
-"target" do not exist in the planning baseline; Person C must add and test them.
+This runbook describes the implemented laptop-only product and its retained
+Stripe rehearsal.
 
 ## Select one real change
 
-Person A completed its provider research. The Stripe historical deprecation pair
-produces `[]` in both oasdiff modes and the Twilio fixture is byte-identical, so
-neither is hero-eligible. Use the proven real OpenAI change:
+Use the official Stripe v1617/v1618 pair as the live hero:
 
 ```text
-old 13c6a94fca988f8be3c5de09d73f012709985d10
-new f85dbe223d40e1a31cba812ab2d755c7e98a92a3
-POST /organization/projects
-POST /organization/projects/{project_id}
-request property geography removed
+old d53532098351a147bbe01f765f6e72497520e4d5 (v1617)
+new 9fa5188b0933d46d2ac3c601d2d9c50904fb54de (v1618)
+match ^/v1/invoices/upcoming(/lines)?$
+GET /v1/invoices/upcoming removed (95193edec850)
+GET /v1/invoices/upcoming/lines removed (ccc1bbbd2eab)
 ```
 
-The dedicated consumer repository must contain a direct integration plus at
+Stripe's create-preview replacement is provider-authored changelog guidance,
+not an oasdiff finding. The OpenAI geography fixture remains the offline
+fallback. The dedicated consumer repository contains a direct integration plus at
 least one wrapper, one test, and one downstream assumption. Those must be real
 committed files in the demo repository, not dashboard-only sample data. All
 three provider adapters receive unit and contract tests, but the presentation
@@ -43,15 +43,15 @@ Before demo day:
 
 ## Exact three-minute script
 
-| Time | Operator action | What the judge sees and hears |
-| --- | --- | --- |
-| 0:00 to 0:20 | Start target `bun run demo:live`; open printed localhost URL. | Top bar says **LIVE**, names the exact consumer repo, and shows local preflight ready. "API providers publish changelogs. TetherIn turns official spec changes into tested customer migration PRs." |
-| 0:20 to 0:45 | Open **API Change** and start the prepared run. | Exact provider old/new commits, source links, spec hashes, oasdiff v1.29.1, raw digest, endpoint, operation ID, and normalized change. No invented summary. |
-| 0:45 to 1:15 | Advance to **Blast Radius**. | Evidence grouped as source, wrapper, tests, and downstream assumptions, each with path, symbol, reason, confidence, and Greptile or deterministic provenance. Explain that Greptile enriches context and `rg`/AST confirms source. |
-| 1:15 to 1:50 | Open **Codex Migration**. | Codex operates in a disposable checkout. Show bounded activity, changed files, focused diff, and exact checks. Say that Codex edits; Greptile independently reviews. |
-| 1:50 to 2:20 | Open **Validation & PR** and follow the real draft PR link. | PR body binds provider provenance, manifest, affected code, Codex summary, exact commands/results, Greptile state, and current head. State clearly that merge remains human-only. |
+| Time         | Operator action                                                                                                          | What the judge sees and hears                                                                                                                                                                                                              |
+| ------------ | ------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| 0:00 to 0:20 | Start target `bun run demo:live`; open printed localhost URL.                                                            | Top bar says **LIVE**, names the exact consumer repo, and shows local preflight ready. "API providers publish changelogs. TetherIn turns official spec changes into tested customer migration PRs."                                        |
+| 0:20 to 0:45 | Open **API Change** and start the prepared run.                                                                          | Exact provider old/new commits, source links, spec hashes, oasdiff v1.29.1, raw digest, endpoint, operation ID, and normalized change. No invented summary.                                                                                |
+| 0:45 to 1:15 | Advance to **Blast Radius**.                                                                                             | Evidence grouped as source, wrapper, tests, and downstream assumptions, each with path, symbol, reason, confidence, and Greptile or deterministic provenance. Explain that Greptile enriches context and `rg`/AST confirms source.         |
+| 1:15 to 1:50 | Open **Codex Migration**.                                                                                                | Codex operates in a disposable checkout. Show bounded activity, changed files, focused diff, and exact checks. Say that Codex edits; Greptile independently reviews.                                                                       |
+| 1:50 to 2:20 | Open **Validation & PR** and follow the real draft PR link.                                                              | PR body binds provider provenance, manifest, affected code, Codex summary, exact commands/results, Greptile state, and current head. State clearly that merge remains human-only.                                                          |
 | 2:20 to 2:45 | If live Greptile is complete, show its real review and composite gate. If still pending, use **Open retained real run**. | Pending remains visibly pending. The retained view keeps its own timestamp, PR, and SHAs. If the real rehearsal found a missed use, show the actual comment or deterministic/test failure and one bounded Codex follow-up on the new head. |
-| 2:45 to 3:00 | Return to the final gate summary. | Tests, deterministic coverage, Greptile freshness, unresolved findings, exact PR head, and **Human merge required**. Close with: "One official change, one verified customer PR, no auto-merge." |
+| 2:45 to 3:00 | Return to the final gate summary.                                                                                        | Tests, deterministic coverage, Greptile freshness, unresolved findings, exact PR head, and **Human merge required**. Close with: "One official change, one verified customer PR, no auto-merge."                                           |
 
 ## Stop conditions
 

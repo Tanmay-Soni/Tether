@@ -15,6 +15,8 @@ export interface TetherInConfig {
   readonly consumerRepoPath: string;
   readonly consumerRepo: string;
   readonly consumerBaseBranch: string;
+  readonly consumerPushRemote: string;
+  readonly consumerPrHeadOwner: string | undefined;
   readonly codexModel: string | undefined;
   readonly greptileMode: "fixture" | "live";
   readonly greptileMcpUrl: string;
@@ -205,6 +207,8 @@ export function loadConfig(
     consumerRepoPath: resolvedConsumer,
     consumerRepo,
     consumerBaseBranch: sourceEnv.TETHERIN_CONSUMER_BASE_BRANCH ?? "main",
+    consumerPushRemote: sourceEnv.TETHERIN_CONSUMER_PUSH_REMOTE ?? "origin",
+    consumerPrHeadOwner: sourceEnv.TETHERIN_CONSUMER_PR_HEAD_OWNER || undefined,
     codexModel: sourceEnv.CODEX_MODEL || undefined,
     greptileMode,
     greptileMcpUrl:

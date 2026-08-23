@@ -49,6 +49,22 @@ const actionLabels: Record<string, string> = {
   RESUME_REVIEW: "Resume review",
   CREATE_OR_OPEN_PR: "Open pull request",
 };
+const activityCopy: Record<string, string> = {
+  READY: "Ready for one-click generation",
+  DETECTING_CHANGE: "oasdiff is comparing the official Stripe specifications",
+  CHANGE_DETECTED: "The contract evidence is normalized and retained",
+  CALCULATING_IMPACT: "AI is tracing direct calls, wrappers, jobs, and tests",
+  IMPACT_CONFIRMED: "Impact confirmed; Codex is starting automatically",
+  MIGRATING: "Codex is editing the isolated consumer worktree",
+  TESTING: "TetherIn is running the demo repository's configured checks",
+  CREATING_PR: "TetherIn is committing, pushing, and opening the draft PR",
+  GREPTILE_REVIEW: "Greptile is reviewing the unchanged pull-request head",
+  VALIDATING: "TetherIn is evaluating exact-head review and test evidence",
+  PR_READY: "Draft PR is ready for human review",
+  GREPTILE_PENDING: "Greptile review is still pending",
+  GREPTILE_BLOCKED: "Greptile needs repository access or operator input",
+  FAILED: "The run stopped safely; inspect the latest event",
+};
 
 function short(value: unknown, size = 12): string {
   const text = String(value ?? "—");
@@ -178,7 +194,7 @@ function App() {
               size="1"
             >
               <Play weight="fill" />
-              New run
+              Generate demo PR
             </Button>
           </div>
           {status.runs.length ? (
@@ -287,6 +303,17 @@ function RunDetail({
   const events = run.events ?? [];
   const artifacts = run.artifacts ?? [];
   const stages = run.stages ?? [];
+  const running = [
+    "DETECTING_CHANGE",
+    "CHANGE_DETECTED",
+    "CALCULATING_IMPACT",
+    "IMPACT_CONFIRMED",
+    "MIGRATING",
+    "TESTING",
+    "CREATING_PR",
+    "GREPTILE_REVIEW",
+    "VALIDATING",
+  ].includes(run.state);
   return (
     <>
       <div className="run-title">
@@ -307,6 +334,25 @@ function RunDetail({
             Draft PR <ArrowSquareOut />
           </a>
         )}
+      </div>
+      <div
+        className={`live-activity ${running ? "running" : "settled"}`}
+        role="status"
+      >
+        <span className="activity-icon">
+          {running ? (
+            <CircleNotch className="spin" />
+          ) : (
+            <StatusIcon state={run.state} />
+          )}
+        </span>
+        <div>
+          <span className="eyebrow">LIVE ACTIVITY</span>
+          <strong>
+            {activityCopy[run.state] ?? run.state.replaceAll("_", " ")}
+          </strong>
+        </div>
+        <code>{new Date(String(run.updated_at)).toLocaleTimeString()}</code>
       </div>
       <section className="stage-rail" aria-label="Workflow stages">
         {stages.map((stage) => (
@@ -428,7 +474,9 @@ function RunDetail({
             </Button>
           ))}
           {!(run.actions ?? []).length && (
-            <Button disabled>No action available</Button>
+            <Button disabled>
+              {running ? "Workflow running" : "No action available"}
+            </Button>
           )}
         </div>
       </footer>

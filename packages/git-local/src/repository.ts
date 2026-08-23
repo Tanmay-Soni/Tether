@@ -203,6 +203,7 @@ export async function pushOwnedBranch(input: {
   checkout: string;
   branch: string;
   expectedHeadSha: string;
+  remote?: string;
 }): Promise<void> {
   const current = (
     await runCommand(["git", "rev-parse", "HEAD"], { cwd: input.checkout })
@@ -212,8 +213,14 @@ export async function pushOwnedBranch(input: {
       "HEAD_DRIFT",
       "Local branch changed before push",
     );
+  const remoteName = input.remote ?? "origin";
+  if (!/^[A-Za-z0-9_.-]+$/u.test(remoteName))
+    throw new RepositoryGuardError(
+      "REMOTE_NAME_INVALID",
+      "Push remote name is unsafe",
+    );
   const remote = await runCommand(
-    ["git", "ls-remote", "--heads", "origin", `refs/heads/${input.branch}`],
+    ["git", "ls-remote", "--heads", remoteName, `refs/heads/${input.branch}`],
     { cwd: input.checkout, timeoutMs: 60_000 },
   );
   if (remote.stdout.trim())
@@ -221,8 +228,8 @@ export async function pushOwnedBranch(input: {
       "REMOTE_BRANCH_COLLISION",
       "Remote migration branch already exists",
     );
-  await runCommand(["git", "push", "--set-upstream", "origin", input.branch], {
-    cwd: input.checkout,
-    timeoutMs: 120_000,
-  });
+  await runCommand(
+    ["git", "push", "--set-upstream", remoteName, input.branch],
+    { cwd: input.checkout, timeoutMs: 120_000 },
+  );
 }

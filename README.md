@@ -13,10 +13,9 @@ It is not a changelog summary, a package bump bot, or an auto-merge tool. Unlike
 Dependabot, it follows behavioral change through direct calls, wrappers,
 transforms, webhook handling, tests, and downstream assumptions.
 
-> Repository status: definitive implementation plans, shared contracts, and
-> fixtures. Person C is responsible for making the target commands below real.
-> Until that handoff lands, `bun run setup` and `bun run demo` are a documented
-> operator contract, not a claim that the application already runs.
+> Repository status: the Person C implementation is complete on
+> `person-c/integration`. The local setup, runner, persisted dashboard, Codex
+> worktree, validation, GitHub draft-PR, and Greptile review paths are executable.
 
 ## Laptop-only hackathon boundary
 
@@ -76,14 +75,14 @@ repository, clean at the expected base, and connected to the exact configured
 `owner/repo`. Branches use `tetherin/<provider>/<manifest-short-id>`. No force
 push is permitted.
 
-| Component | Exact responsibility |
-| --- | --- |
-| [oasdiff](https://github.com/oasdiff/oasdiff) | The only semantic OpenAPI diff engine; v1.29.1 is pinned and checked against upstream hashes. |
-| Person A package | Fetches immutable official specs, invokes oasdiff, preserves raw output, and emits the normalized manifest. |
-| Person B package | Enriches impact evidence where Greptile supports it, confirms usages with `rg` and AST analysis, collects PR review evidence, and computes the validation report. |
-| Codex | Edits code only inside a disposable consumer checkout using the official local SDK adapter. |
-| Person C app | Owns the local state machine, SQLite audit trail, UI, bounded runner, Git and `gh` operations, test execution, and demo. |
-| Human | Reviews and merges the draft PR. TetherIn has no merge capability. |
+| Component                                     | Exact responsibility                                                                                                                                              |
+| --------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| [oasdiff](https://github.com/oasdiff/oasdiff) | The only semantic OpenAPI diff engine; v1.29.1 is pinned and checked against upstream hashes.                                                                     |
+| Person A package                              | Fetches immutable official specs, invokes oasdiff, preserves raw output, and emits the normalized manifest.                                                       |
+| Person B package                              | Enriches impact evidence where Greptile supports it, confirms usages with `rg` and AST analysis, collects PR review evidence, and computes the validation report. |
+| Codex                                         | Edits code only inside a disposable consumer checkout using the official local SDK adapter.                                                                       |
+| Person C app                                  | Owns the local state machine, SQLite audit trail, UI, bounded runner, Git and `gh` operations, test execution, and demo.                                          |
+| Human                                         | Reviews and merges the draft PR. TetherIn has no merge capability.                                                                                                |
 
 "Code validator" is TetherIn's composite gate, not a Greptile product name. It
 combines exact-head test results, deterministic coverage, and Greptile's
@@ -94,11 +93,11 @@ semantic blast-radius endpoint. See the
 
 ## Supported providers and demo
 
-| Provider | Official source | License | Hackathon role |
-| --- | --- | --- | --- |
-| OpenAI | [`openai/openai-openapi`](https://github.com/openai/openai-openapi) | MIT | Selected hero: real `geography` removal across two immutable commits. |
-| Stripe | [`stripe/openapi`](https://github.com/stripe/openapi) | MIT | Adapter tested; researched deprecation pair yields no semantic oasdiff change and is not hero-eligible. |
-| Twilio | [`twilio/twilio-oai/spec/yaml`](https://github.com/twilio/twilio-oai/tree/main/spec/yaml) | MIT | Adapter and contract tests. |
+| Provider | Official source                                                                           | License | Hackathon role                                                                                                          |
+| -------- | ----------------------------------------------------------------------------------------- | ------- | ----------------------------------------------------------------------------------------------------------------------- |
+| OpenAI   | [`openai/openai-openapi`](https://github.com/openai/openai-openapi)                       | MIT     | Retained deterministic fallback: real `geography` removal across two immutable commits.                                 |
+| Stripe   | [`stripe/openapi`](https://github.com/stripe/openapi)                                     | MIT     | Live hero: v1617 to v1618 removes the two upcoming-invoice GET paths; official Basil guidance points to create-preview. |
+| Twilio   | [`twilio/twilio-oai/spec/yaml`](https://github.com/twilio/twilio-oai/tree/main/spec/yaml) | MIT     | Adapter and contract tests.                                                                                             |
 
 Only one live end-to-end path is required. All three adapters receive unit and
 contract tests; the repository must never imply three live migrations. The
@@ -112,11 +111,11 @@ base and are pinned below. Person C uses the new base in `BASELINES.md`, merges
 A then B by exact SHA, preserves both commit histories, and owns only the
 integration glue and product.
 
-| Person | Status | Mission | Owned output | Start here |
-| --- | --- | --- | --- | --- |
-| A | Complete at `da15ba9778ce07c6178a4af4eb42f44fdd7a1fc3` | Provider ingestion, immutable specs, oasdiff, normalization | `packages/provider-pipeline/**`, provider fixtures and tests | [`docs/workstreams/person-a`](docs/workstreams/person-a/README.md) |
-| B | Complete at `57a602ba9de7357fd0385f20e23460b8642b74a9` | Greptile evidence, deterministic confirmation, PR review, validation | `packages/greptile/**`, Greptile fixtures and tests | [`docs/workstreams/person-b`](docs/workstreams/person-b/README.md) |
-| C | Planned | Local runtime, dashboard, SQLite, Codex, Git and GitHub PR flow, E2E demo | `apps/**`, integration packages, root tooling and final lockfile | [`docs/workstreams/person-c`](docs/workstreams/person-c/README.md) |
+| Person | Status                                                 | Mission                                                                   | Owned output                                                     | Start here                                                         |
+| ------ | ------------------------------------------------------ | ------------------------------------------------------------------------- | ---------------------------------------------------------------- | ------------------------------------------------------------------ |
+| A      | Complete at `da15ba9778ce07c6178a4af4eb42f44fdd7a1fc3` | Provider ingestion, immutable specs, oasdiff, normalization               | `packages/provider-pipeline/**`, provider fixtures and tests     | [`docs/workstreams/person-a`](docs/workstreams/person-a/README.md) |
+| B      | Complete at `57a602ba9de7357fd0385f20e23460b8642b74a9` | Greptile evidence, deterministic confirmation, PR review, validation      | `packages/greptile/**`, Greptile fixtures and tests              | [`docs/workstreams/person-b`](docs/workstreams/person-b/README.md) |
+| C      | Complete on `person-c/integration`                     | Local runtime, dashboard, SQLite, Codex, Git and GitHub PR flow, E2E demo | `apps/**`, integration packages, root tooling and final lockfile | [`docs/workstreams/person-c`](docs/workstreams/person-c/README.md) |
 
 Read [`docs/workstreams/BASELINES.md`](docs/workstreams/BASELINES.md) for the
 exact planning SHA and A-then-B merge order. Person A and B are complete; the
@@ -140,8 +139,10 @@ Copy `.env.example` to ignored `.env.local`. The minimum values are the local
 base URL, SQLite and run-artifact paths, mode, an absolute dedicated consumer
 checkout, its expected `owner/repo` and base branch, OpenAI key, Greptile mode
 and key, and the oasdiff version. Never add a GitHub token. `bun run setup` must
-check required secrets without printing them and report each external connection
-as ready, unavailable, or fixture-only.
+check required configuration without printing values and report each external
+connection as ready, unavailable, or fixture-only. The Codex SDK reuses an
+existing Codex CLI login when available; `OPENAI_API_KEY` remains an optional
+live-mode alternative. `GREPTILE_API_KEY` is required for hosted review.
 
 The official [`@openai/codex-sdk`](https://developers.openai.com/codex/sdk/)
 currently documents a server-side TypeScript library that controls local Codex

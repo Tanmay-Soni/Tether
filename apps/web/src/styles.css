@@ -222,6 +222,44 @@ code {
   font-size: 12px;
   font-weight: 650;
 }
+.live-activity {
+  display: grid;
+  grid-template-columns: 34px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 12px;
+  margin: 18px 0;
+  padding: 12px 14px;
+  border: 1px solid var(--line);
+  border-left: 3px solid var(--orange);
+  border-radius: 12px;
+  background: #e6e6e2;
+  box-shadow: var(--inset);
+}
+.live-activity > div {
+  display: grid;
+  gap: 3px;
+}
+.live-activity strong {
+  font-size: 12px;
+  font-weight: 620;
+}
+.live-activity code {
+  color: var(--muted);
+  font-size: 10px;
+}
+.activity-icon {
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 9px;
+  background: var(--pearl);
+  box-shadow: var(--raised);
+}
+.activity-icon svg {
+  width: 16px;
+  height: 16px;
+}
 .stage-rail {
   display: grid;
   grid-template-columns: repeat(4, 1fr);

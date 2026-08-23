@@ -450,6 +450,14 @@ export async function processIntent(
         confirmedCandidates: confirmed.length,
         completeness: blast.completeness,
       });
+    if (confirmed.length) {
+      store.insertIntent({
+        runId,
+        intentKey: `${runId}:auto-migrate`,
+        type: "RUN_MIGRATION",
+        expectedState: "IMPACT_CONFIRMED",
+      });
+    }
     return;
   }
 
@@ -621,7 +629,12 @@ export async function processIntent(
       return;
     }
     move(store, runId, "CREATING_PR", "github", { headSha });
-    await pushOwnedBranch({ checkout, branch, expectedHeadSha: headSha });
+    await pushOwnedBranch({
+      checkout,
+      branch,
+      expectedHeadSha: headSha,
+      remote: config.consumerPushRemote,
+    });
     const marker = `TetherIn-Run: ${runId}`;
     const body = buildPullRequestBody({
       runId,
@@ -634,7 +647,9 @@ export async function processIntent(
     const pr = await createOrFindDraftPullRequest({
       cwd: checkout,
       repository: config.consumerRepo,
-      branch,
+      branch: config.consumerPrHeadOwner
+        ? `${config.consumerPrHeadOwner}:${branch}`
+        : branch,
       base: config.consumerBaseBranch,
       title: "Migrate Stripe invoice previews to Basil",
       body,
@@ -656,15 +671,22 @@ export async function processIntent(
       });
       return;
     }
-    await runGreptileReview(
-      config,
-      store,
-      runId,
-      manifest,
-      blast,
-      checks,
-      pr.number,
-    );
+    try {
+      await runGreptileReview(
+        config,
+        store,
+        runId,
+        manifest,
+        blast,
+        checks,
+        pr.number,
+      );
+    } catch {
+      move(store, runId, "GREPTILE_BLOCKED", "greptile", {
+        reason:
+          "Greptile could not access the configured repository. Authorize repository access, then resume the exact-head review.",
+      });
+    }
     return;
   }
   throw new Error(`UNSUPPORTED_ACTION:${action}`);
