@@ -1,0 +1,138 @@
+[
+  {
+    "id": "request-property-removed",
+    "text": "removed the request property `geography`",
+    "level": 2,
+    "operation": "POST",
+    "operationId": "create-project",
+    "path": "/organization/projects",
+    "section": "paths",
+    "baseSource": {
+      "file": "https://raw.githubusercontent.com/openai/openai-openapi/13c6a94fca988f8be3c5de09d73f012709985d10/openapi.yaml",
+      "line": 45660,
+      "column": 9,
+      "endLine": 45668,
+      "endColumn": 69
+    },
+    "fingerprint": "5b9288552958"
+  },
+  {
+    "id": "request-property-removed",
+    "text": "removed the request property `geography`",
+    "level": 2,
+    "operation": "POST",
+    "operationId": "modify-project",
+    "path": "/organization/projects/{project_id}",
+    "section": "paths",
+    "baseSource": {
+      "file": "https://raw.githubusercontent.com/openai/openai-openapi/13c6a94fca988f8be3c5de09d73f012709985d10/openapi.yaml",
+      "line": 46372,
+      "column": 9,
+      "endLine": 46376,
+      "endColumn": 50
+    },
+    "fingerprint": "a37619d658f2"
+  },
+  {
+    "id": "response-optional-property-added",
+    "text": "added the optional property `data/items/residency` to the response with the `200` status",
+    "level": 1,
+    "operation": "GET",
+    "operationId": "list-projects",
+    "path": "/organization/projects",
+    "section": "paths",
+    "revisionSource": {
+      "file": "https://raw.githubusercontent.com/openai/openai-openapi/f85dbe223d40e1a31cba812ab2d755c7e98a92a3/openapi.yaml",
+      "line": 70967,
+      "column": 5,
+      "endLine": 70981,
+      "endColumn": 32
+    },
+    "fingerprint": "a1e6e9a74ccb"
+  },
+  {
+    "id": "new-optional-request-property",
+    "text": "added the new optional request property `residency`",
+    "level": 1,
+    "operation": "POST",
+    "operationId": "create-project",
+    "path": "/organization/projects",
+    "section": "paths",
+    "revisionSource": {
+      "file": "https://raw.githubusercontent.com/openai/openai-openapi/f85dbe223d40e1a31cba812ab2d755c7e98a92a3/openapi.yaml",
+      "line": 45663,
+      "column": 9,
+      "endLine": 45671,
+      "endColumn": 69
+    },
+    "fingerprint": "aca6a8074eb9"
+  },
+  {
+    "id": "response-optional-property-added",
+    "text": "added the optional property `residency` to the response with the `200` status",
+    "level": 1,
+    "operation": "POST",
+    "operationId": "create-project",
+    "path": "/organization/projects",
+    "section": "paths",
+    "revisionSource": {
+      "file": "https://raw.githubusercontent.com/openai/openai-openapi/f85dbe223d40e1a31cba812ab2d755c7e98a92a3/openapi.yaml",
+      "line": 70967,
+      "column": 5,
+      "endLine": 70981,
+      "endColumn": 32
+    },
+    "fingerprint": "562dd00319d6"
+  },
+  {
+    "id": "response-optional-property-added",
+    "text": "added the optional property `residency` to the response with the `200` status",
+    "level": 1,
+    "operation": "GET",
+    "operationId": "retrieve-project",
+    "path": "/organization/projects/{project_id}",
+    "section": "paths",
+    "revisionSource": {
+      "file": "https://raw.githubusercontent.com/openai/openai-openapi/f85dbe223d40e1a31cba812ab2d755c7e98a92a3/openapi.yaml",
+      "line": 70967,
+      "column": 5,
+      "endLine": 70981,
+      "endColumn": 32
+    },
+    "fingerprint": "a78eebf25579"
+  },
+  {
+    "id": "response-optional-property-added",
+    "text": "added the optional property `residency` to the response with the `200` status",
+    "level": 1,
+    "operation": "POST",
+    "operationId": "modify-project",
+    "path": "/organization/projects/{project_id}",
+    "section": "paths",
+    "revisionSource": {
+      "file": "https://raw.githubusercontent.com/openai/openai-openapi/f85dbe223d40e1a31cba812ab2d755c7e98a92a3/openapi.yaml",
+      "line": 70967,
+      "column": 5,
+      "endLine": 70981,
+      "endColumn": 32
+    },
+    "fingerprint": "ef5fab62c48c"
+  },
+  {
+    "id": "response-optional-property-added",
+    "text": "added the optional property `residency` to the response with the `200` status",
+    "level": 1,
+    "operation": "POST",
+    "operationId": "archive-project",
+    "path": "/organization/projects/{project_id}/archive",
+    "section": "paths",
+    "revisionSource": {
+      "file": "https://raw.githubusercontent.com/openai/openai-openapi/f85dbe223d40e1a31cba812ab2d755c7e98a92a3/openapi.yaml",
+      "line": 70967,
+      "column": 5,
+      "endLine": 70981,
+      "endColumn": 32
+    },
+    "fingerprint": "a2072006a0f6"
+  }
+]

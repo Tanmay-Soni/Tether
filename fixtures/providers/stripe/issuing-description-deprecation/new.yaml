@@ -1,0 +1,22 @@
+# Minimal test document assembled from the official Stripe operation named in
+# metadata.json. It is not the full upstream specification.
+openapi: 3.0.0
+info:
+  title: Stripe Issuing deprecation-description fixture
+  version: "2023-08-16"
+paths:
+  /v1/issuing/authorizations/{authorization}/approve:
+    post:
+      description: >-
+        <p>[Deprecated] Approves a pending Issuing <code>Authorization</code>
+        object. This request should be made within the timeout window of the <a
+        href="/docs/issuing/controls/real-time-authorizations">real-time
+        authorization</a> flow.
+
+        This method is deprecated. Instead, <a
+        href="/docs/issuing/controls/real-time-authorizations#authorization-handling">respond
+        directly to the webhook request to approve an authorization</a>.</p>
+      operationId: PostIssuingAuthorizationsAuthorizationApprove
+      responses:
+        "200":
+          description: Successful response

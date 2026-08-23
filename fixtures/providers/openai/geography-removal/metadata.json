@@ -1,0 +1,78 @@
+{
+  "schemaVersion": "tetherin.provider-fixture/v1",
+  "fixtureId": "openai-geography-removal",
+  "provider": "openai",
+  "status": "verified-breaking-fallback",
+  "repositoryUrl": "https://github.com/openai/openai-openapi",
+  "specPath": "openapi.yaml",
+  "licenseSpdx": "MIT",
+  "licenseUrl": "https://raw.githubusercontent.com/openai/openai-openapi/13c6a94fca988f8be3c5de09d73f012709985d10/LICENSE",
+  "licenseSha256": "bcba3de214851cce46ed5af42d6698044616eeace887c3231bc7a20474ab639e",
+  "old": {
+    "commit": "13c6a94fca988f8be3c5de09d73f012709985d10",
+    "sourceUrl": "https://raw.githubusercontent.com/openai/openai-openapi/13c6a94fca988f8be3c5de09d73f012709985d10/openapi.yaml",
+    "fullSpecSha256": "a85b8a1274f0f65bcddbb8762993da9075846e2c97a5c81cf6822c9568038c33",
+    "fragmentSha256": "8453e49ab2c940c520465bacf75c054d7aa16bdfc20274dd4565a623c6ef3525"
+  },
+  "new": {
+    "commit": "f85dbe223d40e1a31cba812ab2d755c7e98a92a3",
+    "sourceUrl": "https://raw.githubusercontent.com/openai/openai-openapi/f85dbe223d40e1a31cba812ab2d755c7e98a92a3/openapi.yaml",
+    "fullSpecSha256": "db5d7478feae10b4d331834c60d9765a8aa042e38419f9b1694288c11aa8ebc8",
+    "fragmentSha256": "2137ab7e5a2a51ad5ecf4bd23f6830b320432ff637f3e396f12b8d465c391a4e"
+  },
+  "sourceNodes": [
+    {
+      "jsonPointer": "/components/schemas/ProjectCreateRequest/properties/geography",
+      "sourceLines": "45660-45668"
+    },
+    {
+      "jsonPointer": "/components/schemas/ProjectUpdateRequest/properties/geography",
+      "sourceLines": "46372-46376"
+    }
+  ],
+  "assembly": "The fixture documents add only the minimum OpenAPI wrapper and retain the exact old geography schema values. They are not full upstream specs.",
+  "oasdiff": {
+    "version": "1.29.1",
+    "releaseCommit": "2bb87bada404d350cb56e5504e8bd5d76f6159bf",
+    "officialCommand": [
+      "oasdiff",
+      "breaking",
+      "--format",
+      "json",
+      "https://raw.githubusercontent.com/openai/openai-openapi/13c6a94fca988f8be3c5de09d73f012709985d10/openapi.yaml",
+      "https://raw.githubusercontent.com/openai/openai-openapi/f85dbe223d40e1a31cba812ab2d755c7e98a92a3/openapi.yaml"
+    ],
+    "fragmentCommand": [
+      "oasdiff",
+      "breaking",
+      "--format",
+      "json",
+      "old.yaml",
+      "new.yaml"
+    ],
+    "officialChangelogCommand": [
+      "oasdiff",
+      "changelog",
+      "--format",
+      "json",
+      "https://raw.githubusercontent.com/openai/openai-openapi/13c6a94fca988f8be3c5de09d73f012709985d10/openapi.yaml",
+      "https://raw.githubusercontent.com/openai/openai-openapi/f85dbe223d40e1a31cba812ab2d755c7e98a92a3/openapi.yaml"
+    ],
+    "fragmentChangelogCommand": [
+      "oasdiff",
+      "changelog",
+      "--format",
+      "json",
+      "old.yaml",
+      "new.yaml"
+    ],
+    "officialPrettyOutputSha256": "07640494838ec2e0ebce6af7098cf6e46fd269999e051aa6fa2d694e837ee382",
+    "fragmentPrettyOutputSha256": "43c2ceebe19cb0c3c2fd3e038c94b64477ed223eb63f4b6e84a02ebfa47eff81",
+    "officialChangelogCompactOutputSha256": "21b71cfce8d062027fecde978592655c8283d77e426e27641e555e042cb6ef0c",
+    "officialChangelogPrettyOutputSha256": "417e8be303beedeec97b5c26fabc9ef94e85f29ccfb6c0c6f8693bf1feb0aea2",
+    "fragmentChangelogPrettyOutputSha256": "43c2ceebe19cb0c3c2fd3e038c94b64477ed223eb63f4b6e84a02ebfa47eff81",
+    "manifestCanonicalSha256": "b4458eec684a821e95199debdd9b0c1a4aafad4b10b83bc88f357809413ddcad",
+    "documentedHashMismatch": "contracts example and docs/provenance record b379acf15f4b0663c43da2701b387acaa9924c11e8005a2a3cea9be521fe9746, but the unchanged retained official pretty JSON bytes hash to 07640494838ec2e0ebce6af7098cf6e46fd269999e051aa6fa2d694e837ee382"
+  },
+  "generatedAt": "2026-08-23T22:17:11Z"
+}
