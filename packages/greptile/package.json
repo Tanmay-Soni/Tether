@@ -12,6 +12,7 @@
     }
   },
   "scripts": {
+    "build": "tsc -p tsconfig.build.json",
     "format:check": "prettier --check \"src/**/*.ts\" \"test/**/*.ts\" \"../../fixtures/greptile/**/*.json\" \"../../fixtures/greptile/README.md\" \"../../docs/workstreams/person-b/HANDOFF.md\" package.json tsconfig.json",
     "lint": "tsc -p tsconfig.json --noEmit",
     "typecheck": "tsc -p tsconfig.json --noEmit",
