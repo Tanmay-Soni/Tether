@@ -28,10 +28,12 @@ schema with `oasdiff schema`.
 | Provider | Repository/default branch | Spec path | Planning head | License |
 | --- | --- | --- | --- | --- |
 | OpenAI | <https://github.com/openai/openai-openapi> `main` | `openapi.yaml` | `f85dbe223d40e1a31cba812ab2d755c7e98a92a3` | MIT |
-| Stripe | <https://github.com/stripe/openapi> `master` | `openapi/spec3.yaml` or JSON equivalent verified by adapter | `f6c2a48fbac2819d1feba8143d942ffc65e1c0d2` | MIT |
+| Stripe | <https://github.com/stripe/openapi> `master` | recommended GA `latest/openapi.spec3.yaml` | `f6c2a48fbac2819d1feba8143d942ffc65e1c0d2` | MIT |
 | Twilio | <https://github.com/twilio/twilio-oai> `main` | service files under `spec/yaml` | `b02705eb7dbf63e0925375779730a4fc93c3b0b4` | MIT |
 
-Person A must verify path existence at each selected immutable commit. Twilio is
+Person A must verify path existence at each selected immutable commit. Stripe's
+`openapi/spec3.yaml` is a legacy v1-only source and may be used only for an
+explicitly labeled historical fixture. Twilio is
 a directory of service specs, not one invented aggregate file; compare the same
 service file across revisions or build a deterministic documented bundle.
 
