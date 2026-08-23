@@ -19,11 +19,13 @@ values copied from current `main`.
 | Completed B verification | `6247ce9e7c07333ddcabd49f424b868e885b9bdb` |
 | Earlier local coordination pin | `fbae67b468f4d7522ffb8d946ba336c713b166c7` |
 | Concrete A+B integration evidence and Person C plan | `13d5209ebb44fe9934d15c3508f9faa1091d60f2` |
+| Completed A+B coordination pin | `cdc4bef8a616fdb338692f8f46c76a776559d2ec` |
+| Selective Bun dependency-alignment correction | `60d39a64f0e8eee17e2b942b879377214fa2f80a` |
 
 The only new implementation work is Person C. Its immutable base is:
 
 ```text
-PLANNING_BASE_SHA=13d5209ebb44fe9934d15c3508f9faa1091d60f2
+PLANNING_BASE_SHA=60d39a64f0e8eee17e2b942b879377214fa2f80a
 ```
 
 This base contains the definitive laptop-only runtime plan, dashboard contract,
@@ -62,9 +64,9 @@ and produced no merge conflicts:
 
 ```bash
 git fetch origin --tags
-git cat-file -e 13d5209ebb44fe9934d15c3508f9faa1091d60f2^{commit}
-git merge-base --is-ancestor 13d5209ebb44fe9934d15c3508f9faa1091d60f2 origin/main
-git switch --detach 13d5209ebb44fe9934d15c3508f9faa1091d60f2
+git cat-file -e 60d39a64f0e8eee17e2b942b879377214fa2f80a^{commit}
+git merge-base --is-ancestor 60d39a64f0e8eee17e2b942b879377214fa2f80a origin/main
+git switch --detach 60d39a64f0e8eee17e2b942b879377214fa2f80a
 git switch -c person-c/integration
 
 git fetch origin person-a/provider-diff person-b/greptile-evidence
