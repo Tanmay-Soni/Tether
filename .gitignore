@@ -10,3 +10,6 @@ dist/
 node_modules/
 *.log
 tmp/
+.playwright/
+playwright-report/
+test-results/

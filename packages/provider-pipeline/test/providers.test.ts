@@ -124,6 +124,39 @@ describe("official provider ref resolution", () => {
 });
 
 describe("provider identity and selection policies", () => {
+  it("supports Stripe's immutable historical spec path and official Basil guidance", async () => {
+    const adapter = createProviderAdapter("stripe");
+    await expect(
+      adapter.resolveRevision(STRIPE_SHA, { variant: "legacy-v1" }),
+    ).resolves.toMatchObject({
+      path: "openapi/spec3.yaml",
+      rawUrl: `https://raw.githubusercontent.com/stripe/openapi/${STRIPE_SHA}/openapi/spec3.yaml`,
+    });
+    await expect(
+      adapter.guidance([
+        {
+          oasdiffId: "api-path-removed-without-deprecation",
+          fingerprint: "95193edec850",
+          severity: "error",
+          breaking: true,
+          method: "GET",
+          path: "/v1/invoices/upcoming",
+          operationId: "GetInvoicesUpcoming",
+          text: "removed the path without deprecation",
+          subject: { kind: "endpoint" },
+          oldLocation: null,
+          newLocation: null,
+          schemaExcerpts: { old: null, new: null },
+        },
+      ]),
+    ).resolves.toEqual([
+      expect.objectContaining({
+        source: "provider-changelog",
+        url: "https://docs.stripe.com/changelog/basil/2025-03-31/invoice-preview-api-deprecations",
+      }),
+    ]);
+  });
+
   it("requires one safe Twilio .yaml service basename", async () => {
     const adapter = createProviderAdapter("twilio");
 

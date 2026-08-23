@@ -13,9 +13,11 @@ import {
 } from "../provenance.js";
 import type {
   LocalSpec,
+  NormalizedChange,
   Provider,
   ProviderAdapter,
   ProviderGuidance,
+  ProviderSelection,
   SpecRevision,
 } from "../types.js";
 
@@ -27,23 +29,29 @@ export interface ProviderAdapterOptions extends ProviderFetchOptions {
   githubToken?: string;
 }
 
-export type SpecPathResolver = (selection?: { service?: string }) => string;
+export type SpecPathResolver = (selection?: ProviderSelection) => string;
+export type GuidanceResolver = (
+  changes: NormalizedChange[],
+) => ProviderGuidance[];
 
 export class OfficialProviderAdapter implements ProviderAdapter {
   readonly provider: Provider;
   readonly #configuration: OfficialProviderConfiguration;
   readonly #pathResolver: SpecPathResolver;
   readonly #options: ProviderAdapterOptions;
+  readonly #guidanceResolver: GuidanceResolver;
 
   constructor(
     provider: Provider,
     pathResolver: SpecPathResolver,
     options: ProviderAdapterOptions = {},
+    guidanceResolver: GuidanceResolver = () => [],
   ) {
     this.provider = provider;
     this.#configuration = officialProviderConfiguration(provider);
     this.#pathResolver = pathResolver;
     this.#options = options;
+    this.#guidanceResolver = guidanceResolver;
     if (
       options.githubToken !== undefined &&
       (options.githubToken === "" || /[\r\n]/u.test(options.githubToken))
@@ -59,7 +67,7 @@ export class OfficialProviderAdapter implements ProviderAdapter {
 
   async resolveRevision(
     ref: string,
-    selection?: { service?: string },
+    selection?: ProviderSelection,
   ): Promise<SpecRevision> {
     const path = this.#pathResolver(selection);
     const commit = await resolveOfficialGitHubRef(
@@ -90,8 +98,8 @@ export class OfficialProviderAdapter implements ProviderAdapter {
     return materializeSpec(revision, cacheDir, this.#options);
   }
 
-  guidance(): Promise<ProviderGuidance[]> {
-    return Promise.resolve([]);
+  guidance(changes: NormalizedChange[]): Promise<ProviderGuidance[]> {
+    return Promise.resolve(this.#guidanceResolver(changes));
   }
 }
 

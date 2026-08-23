@@ -557,6 +557,9 @@ export async function buildMigrationManifest(
         mode,
         "--format",
         "json",
+        ...(input.matchPath === undefined
+          ? []
+          : ["--match-path", input.matchPath]),
         "OLD_SPEC_PATH",
         "NEW_SPEC_PATH",
       ],

@@ -32,6 +32,37 @@ afterEach(async () => {
 });
 
 describe("oasdiff runner", () => {
+  it("passes the Stripe hero match-path as one literal argument", async () => {
+    const setup = await makeSetup();
+    const argumentLog = join(setup.directory, "filtered-arguments.json");
+    const binaryPath = await writeFakeOasdiff(
+      setup.directory,
+      `await writeFile(${JSON.stringify(argumentLog)}, JSON.stringify(args));\nprocess.stdout.write('[]');`,
+      { imports: 'import { writeFile } from "node:fs/promises";' },
+    );
+    const matchPath = "^/v1/invoices/upcoming(/lines)?$";
+    const result = await createOasdiffEngine({
+      cacheDir: setup.cacheDir,
+      binaryPath,
+    }).compare({
+      oldSpec: setup.oldSpec,
+      newSpec: setup.newSpec,
+      mode: "breaking",
+      artifactDir: setup.artifactDir,
+      matchPath,
+    });
+    expect(result.matchPath).toBe(matchPath);
+    expect(JSON.parse(await readFile(argumentLog, "utf8"))).toEqual([
+      "breaking",
+      "--format",
+      "json",
+      "--match-path",
+      matchPath,
+      setup.oldSpec.filePath,
+      setup.newSpec.filePath,
+    ]);
+  });
+
   it.each(["breaking", "changelog"] as const)(
     "runs %s with an argument array, validates schema, and atomically retains raw output",
     async (mode) => {

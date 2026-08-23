@@ -13,6 +13,7 @@ export interface OfficialProviderConfiguration {
   readonly repositoryUrl: `https://github.com/${string}`;
   readonly defaultBranch: "main" | "master";
   readonly fixedPath?: string;
+  readonly additionalPaths?: readonly string[];
 }
 
 const PROVIDERS: Readonly<
@@ -33,6 +34,7 @@ const PROVIDERS: Readonly<
     repositoryUrl: "https://github.com/stripe/openapi",
     defaultBranch: "master",
     fixedPath: "latest/openapi.spec3.yaml",
+    additionalPaths: ["openapi/spec3.yaml"],
   },
   twilio: {
     provider: "twilio",
@@ -195,7 +197,8 @@ function assertAllowedPath(
     configuration.provider === "twilio"
       ? path.startsWith("spec/yaml/") &&
         path === twilioSpecPath(path.slice("spec/yaml/".length))
-      : path === configuration.fixedPath;
+      : path === configuration.fixedPath ||
+        configuration.additionalPaths?.includes(path) === true;
 
   if (!allowed) {
     throw new PipelineError(

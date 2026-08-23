@@ -66,12 +66,14 @@ class OasdiffEngine implements ContractDiffEngine {
     newSpec: Parameters<ContractDiffEngine["compare"]>[0]["newSpec"];
     mode: "breaking" | "changelog";
     artifactDir: string;
+    matchPath?: string;
     signal?: AbortSignal;
   }): Promise<{
     rawMode: "breaking" | "changelog";
     rawChanges: OasdiffRawChange[];
     rawArtifactPath: string;
     rawSha256: string;
+    matchPath?: string;
   }> {
     throwIfAborted(input.signal);
     assertCompatibleRevisionPair(input.oldSpec, input.newSpec);
@@ -96,6 +98,17 @@ class OasdiffEngine implements ContractDiffEngine {
       input.signal,
     );
 
+    if (
+      input.matchPath !== undefined &&
+      (input.matchPath.length > 256 ||
+        !/^[\^$A-Za-z0-9_/().?+*|{}-]+$/u.test(input.matchPath))
+    ) {
+      throw new PipelineError(
+        "OASDIFF_FAILED",
+        "invalid oasdiff match-path filter",
+        { field: "matchPath" },
+      );
+    }
     const temporaryPath = join(
       artifactDirectory,
       `.oasdiff-${mode}.${String(process.pid)}.${randomUUID()}.tmp`,
@@ -107,6 +120,9 @@ class OasdiffEngine implements ContractDiffEngine {
           mode,
           "--format",
           "json",
+          ...(input.matchPath === undefined
+            ? []
+            : ["--match-path", input.matchPath]),
           resolve(input.oldSpec.filePath),
           resolve(input.newSpec.filePath),
         ],
@@ -137,7 +153,15 @@ class OasdiffEngine implements ContractDiffEngine {
       await chmod(temporaryPath, 0o600);
       await rename(temporaryPath, rawArtifactPath);
       await syncDirectory(artifactDirectory);
-      return { rawMode: mode, rawChanges, rawArtifactPath, rawSha256 };
+      return {
+        rawMode: mode,
+        rawChanges,
+        rawArtifactPath,
+        rawSha256,
+        ...(input.matchPath === undefined
+          ? {}
+          : { matchPath: input.matchPath }),
+      };
     } finally {
       await rm(temporaryPath, { force: true });
     }

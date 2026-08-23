@@ -10,11 +10,14 @@ export function createOpenAIAdapter(
   return new OfficialProviderAdapter(
     "openai",
     (selection) => {
-      if (selection?.service !== undefined) {
+      if (
+        selection?.service !== undefined ||
+        selection?.variant !== undefined
+      ) {
         throw new PipelineError(
           "REVISION_INVALID",
           "OpenAI has one allowlisted spec and does not accept a service selection",
-          { field: "selection.service" },
+          { field: "selection" },
         );
       }
       return "openapi.yaml";

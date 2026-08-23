@@ -1,4 +1,5 @@
 import { twilioSpecPath } from "../provenance.js";
+import { PipelineError } from "../errors.js";
 import {
   OfficialProviderAdapter,
   type ProviderAdapterOptions,
@@ -9,7 +10,15 @@ export function createTwilioAdapter(
 ): OfficialProviderAdapter {
   return new OfficialProviderAdapter(
     "twilio",
-    (selection) => twilioSpecPath(selection?.service),
+    (selection) => {
+      if (selection?.variant !== undefined)
+        throw new PipelineError(
+          "REVISION_INVALID",
+          "Twilio does not accept a provider variant",
+          { field: "selection.variant" },
+        );
+      return twilioSpecPath(selection?.service);
+    },
     options,
   );
 }

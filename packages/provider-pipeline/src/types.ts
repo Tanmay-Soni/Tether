@@ -1,4 +1,8 @@
 export type Provider = "openai" | "stripe" | "twilio";
+export interface ProviderSelection {
+  service?: string;
+  variant?: "legacy-v1";
+}
 
 export interface SpecRevision {
   provider: Provider;
@@ -78,7 +82,7 @@ export interface ProviderAdapter {
   readonly provider: Provider;
   resolveRevision(
     ref: string,
-    selection?: { service?: string },
+    selection?: ProviderSelection,
   ): Promise<SpecRevision>;
   materialize(revision: SpecRevision, cacheDir: string): Promise<LocalSpec>;
   guidance(changes: NormalizedChange[]): Promise<ProviderGuidance[]>;
@@ -90,12 +94,14 @@ export interface ContractDiffEngine {
     newSpec: LocalSpec;
     mode: "breaking" | "changelog";
     artifactDir: string;
+    matchPath?: string;
     signal?: AbortSignal;
   }): Promise<{
     rawMode: "breaking" | "changelog";
     rawChanges: OasdiffRawChange[];
     rawArtifactPath: string;
     rawSha256: string;
+    matchPath?: string;
   }>;
 }
 
@@ -137,6 +143,7 @@ export interface NormalizationInput {
   rawArtifactPath: string;
   rawSha256: string;
   rawMode: "breaking" | "changelog";
+  matchPath?: string;
   guidance?: ProviderGuidance[];
   detectedAt?: string;
   manifestSchemaPath?: string;
