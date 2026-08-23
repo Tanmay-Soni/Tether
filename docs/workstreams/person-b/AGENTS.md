@@ -5,6 +5,15 @@ confirmation, and the TetherIn validation-gate package. Read this file and
 `README.md` completely before editing. "Do Person B's work end-to-end" means
 execute that README without relying on chat context.
 
+## Completed status
+
+Person B is already handed off at remote commit
+`57a602ba9de7357fd0385f20e23460b8642b74a9` on
+`origin/person-b/greptile-evidence`. If asked to do Person B without an explicit
+change request, fetch the remote, verify that exact head and clean handoff, and
+report completion. Do not create a duplicate branch or rewrite the handed-off
+commit.
+
 ## Start rule
 
 Read `../BASELINES.md`, verify `git rev-parse HEAD` equals its immutable

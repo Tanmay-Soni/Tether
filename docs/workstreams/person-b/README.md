@@ -2,6 +2,12 @@
 
 This is the complete work package for Person B. It requires no chat history.
 
+> Completed handoff: remote branch `origin/person-b/greptile-evidence` is pinned
+> at `57a602ba9de7357fd0385f20e23460b8642b74a9`. The implementation and its
+> `HANDOFF.md` live on that branch, not current planning `main`. Do not start a
+> duplicate Person B implementation. Person C must merge the exact SHA and use
+> the concrete exports recorded in its own README.
+
 ## Mission
 
 Build an implementation-ready Greptile adapter that:

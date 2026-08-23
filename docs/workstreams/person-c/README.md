@@ -182,20 +182,26 @@ const validationUnknown = createCodeValidationGate().evaluate({
 The concrete package pins MCP SDK `1.30.0`, AJV `8.20.0`, ajv-formats `3.0.1`,
 TypeScript `5.9.3`, Vitest `4.1.11`, Prettier `3.9.6`, and Node types `24.10.1`.
 Its handoff reports 3 test files and 11 tests passing under Node 24 with its old
-lockless package-manager command surface. No live Greptile smoke ran because the
+lockless package-manager command surface. After merging the exact SHA into this
+local-only baseline in an isolated verification worktree, Bun 1.4.0 passed the
+real `format:check`, `lint`, `typecheck`, `test` (3 files, 11 tests), and
+`test:fixtures` (1 file, 1 test) scripts. No live Greptile smoke ran because the
 environment lacked a key, authorized demo PR, and confirmed KB rollout.
 
 Person C must close two local integration gaps without changing B's evidence or
 gate logic:
 
-1. Re-run B under the new Bun workspace and final `bun.lock`. Its package export
-   points to `dist/index.js` but defines no build script. Add a C-owned runtime
-   adapter or root build step that compiles the exact B source and tests the
-   public package import; do not patch algorithms or import private modules.
-2. Run a Bun compatibility smoke for the MCP transport and Node built-ins. If
-   Bun cannot run the exact public adapter, host it in a separate C-owned local
-   Node 22 sidecar with a typed, secret-safe protocol. Keep Bun as the operator
-   entry and do not combine the Greptile key with the Codex sidecar.
+1. Regenerate the final `bun.lock` after all merges. B's offline Bun suite is
+   already verified, but its package export points to `dist/index.js` and it
+   defines no build script; a direct public-package import has no built target.
+   Add a C-owned root build step that compiles the exact public `src/index.ts`
+   entry to `dist`, then smoke the exported package name. Do not patch algorithms
+   or import private modules from C code.
+2. Run a live Bun compatibility smoke for MCP transport and Node built-ins when
+   credentials are available. If only that live transport fails under Bun, host
+   the exact public adapter in a separate C-owned local Node 22 sidecar with a
+   typed, secret-safe protocol. Keep Bun as the operator entry and never combine
+   the Greptile key with the Codex sidecar.
 
 Preserve B's documented limits in state and UI: KB search is literal substring
 search over synthesized untrusted Markdown; rollout/repository visibility can be

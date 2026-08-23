@@ -13,6 +13,8 @@
     "node": ">=22.18 <25"
   },
   "scripts": {
+    "verify:links": "node scripts/check-markdown-links.mjs",
+    "verify:schemas": "node scripts/validate-contracts.mjs",
     "verify:planning": "bash scripts/verify-planning.sh"
   },
   "devDependencies": {

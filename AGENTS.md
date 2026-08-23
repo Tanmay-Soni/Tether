@@ -9,7 +9,7 @@ must be executable without chat context.
 | Assignment | Read in order | Branch |
 | --- | --- | --- |
 | Person A | `docs/workstreams/BASELINES.md`, `docs/workstreams/person-a/AGENTS.md`, then its `README.md` | `person-a/provider-diff` |
-| Person B | `docs/workstreams/BASELINES.md`, `docs/workstreams/person-b/AGENTS.md`, then its `README.md` | `person-b/greptile-evidence` |
+| Person B | Completed: verify `57a602ba9de7357fd0385f20e23460b8642b74a9`; read its remote `HANDOFF.md` | `person-b/greptile-evidence` |
 | Person C | `docs/workstreams/BASELINES.md`, `docs/workstreams/person-c/AGENTS.md`, then its `README.md` and `docs/design/dashboard.md` | `person-c/integration` |
 
 All not-yet-started agents use the immutable `PLANNING_BASE_SHA` recorded on
@@ -63,9 +63,9 @@ reimplementing either package.
   note.
 - Person C owns `apps/**`, local integration packages, final root configuration,
   `bun.lock`, SQLite migrations, demo consumer tooling, and runbooks.
-- A and B may modify their package manifests but do not commit `bun.lock`.
-  They test with `bun install --no-save`; C regenerates the one final lock after
-  merging both handoffs.
+- A does not commit `bun.lock` and tests with `bun install --no-save`. B's
+  completed branch also has no lock. C regenerates the one final lock after
+  merging handoffs.
 - Cross-workstream payloads must validate against the checked-in JSON Schemas.
   A or B proposes a contract change in `HANDOFF.md`; C coordinates any version
   bump after integration.

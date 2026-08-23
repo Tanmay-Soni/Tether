@@ -107,8 +107,11 @@ retained genuine fallback, and scoped recovery.
 
 ## Workstreams
 
-Person A and Person B work independently from the same immutable planning base.
-Person C merges both handoffs and delivers the complete local product.
+Person B completed its independent branch from the earlier immutable base and is
+pinned by exact SHA below. Any not-yet-started Person A or C agent uses the new
+base in `BASELINES.md`. C merges exact B now, may scaffold against the committed
+manifest fixture while A is pending, and delivers the full product only after A
+also hands off.
 
 | Person | Status | Mission | Owned output | Start here |
 | --- | --- | --- | --- | --- |
