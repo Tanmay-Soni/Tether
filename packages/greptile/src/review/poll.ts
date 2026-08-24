@@ -43,7 +43,7 @@ export async function triggerGreptileReview(input: {
     const existing = normalizeTriggeredReview(
       await input.transport.callTool("list_code_reviews", reviewQuery),
       input.expectedHeadSha,
-      { activeOnly: true },
+      { reusableOnly: true },
     );
     if (existing)
       return {

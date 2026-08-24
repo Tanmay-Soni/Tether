@@ -170,6 +170,42 @@ describe("review evidence", () => {
     expect(handle.codeReviewId).toBe("20292076");
   });
 
+  it("reuses a completed exact-head review without retriggering it", async () => {
+    const adapter = createGreptileEvidenceAdapter({
+      now: fixedNow,
+      transport: new FixtureGreptileTransport([
+        {
+          tool: "list_code_reviews",
+          response: {
+            codeReviews: [
+              {
+                id: "20292076",
+                status: "COMPLETED",
+                commitSha: pullRequest.headSha,
+                createdAt: "2026-08-24T00:24:25.171Z",
+              },
+              {
+                id: "20291875",
+                status: "SKIPPED",
+                commitSha: pullRequest.headSha,
+                createdAt: "2026-08-24T00:25:25.171Z",
+              },
+            ],
+          },
+        },
+      ]),
+    });
+    const handle = await adapter.triggerReview({
+      repository: pullRequest.repository,
+      defaultBranch: "main",
+      prNumber: pullRequest.number,
+      branch: "tetherin/demo",
+      expectedHeadSha: pullRequest.headSha,
+      executionMode: "live",
+    });
+    expect(handle.codeReviewId).toBe("20292076");
+  });
+
   it("discovers the exact-head review when the live trigger omits its ID", async () => {
     const adapter = createGreptileEvidenceAdapter({
       now: fixedNow,

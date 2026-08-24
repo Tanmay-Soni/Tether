@@ -39,7 +39,11 @@ export function normalizeTriggerResponse(value: unknown): {
 export function normalizeTriggeredReview(
   value: unknown,
   expectedHeadSha: string,
-  options: { activeOnly?: boolean; createdAfter?: string } = {},
+  options: {
+    activeOnly?: boolean;
+    reusableOnly?: boolean;
+    createdAfter?: string;
+  } = {},
 ): { id: string; status: ReviewEvidence["status"] } | null {
   const record = isRecord(value) ? value : {};
   const candidates = asArray(record.codeReviews)
@@ -68,6 +72,16 @@ export function normalizeTriggeredReview(
         ["PENDING", "REVIEWING_FILES", "GENERATING_SUMMARY"].includes(
           review.status,
         ),
+    )
+    .filter(
+      (review) =>
+        !options.reusableOnly ||
+        [
+          "PENDING",
+          "REVIEWING_FILES",
+          "GENERATING_SUMMARY",
+          "COMPLETED",
+        ].includes(review.status),
     )
     .filter((review) => {
       if (!options.createdAfter) return true;
