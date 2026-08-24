@@ -2,6 +2,7 @@
   "name": "tether-in",
   "version": "0.0.0",
   "private": true,
+  "type": "module",
   "description": "Self-maintaining API integrations powered by oasdiff, Codex, and Greptile",
   "packageManager": "bun@1.4.0",
   "workspaces": [
@@ -13,13 +14,40 @@
     "node": ">=22.18 <25"
   },
   "scripts": {
+    "setup": "bun scripts/setup.ts",
+    "demo": "bun scripts/demo.ts",
+    "demo:fixture": "TETHERIN_MODE=fixture bun scripts/demo.ts",
+    "demo:live": "TETHERIN_MODE=live bun scripts/demo.ts --require-live",
+    "demo:reset": "bun scripts/demo-reset.ts",
+    "format:check": "prettier --check package.json apps packages/config packages/orchestrator packages/local-state packages/git-local packages/github-cli packages/codex-runner packages/greptile/vitest.config.ts scripts/*.ts test playwright.config.ts vitest*.ts && bun run --filter @tetherin/provider-pipeline format:check && bun run --filter @tetherin/greptile format:check",
+    "lint": "bun scripts/lint.ts",
+    "typecheck": "bun run build:packages && bun run --filter @tetherin/web typecheck && bun run --filter @tetherin/runner typecheck",
+    "build:packages": "bun run --filter @tetherin/provider-pipeline build && bun run --filter @tetherin/greptile build && bun run --filter @tetherin/config build && bun run --filter @tetherin/orchestrator build && bun run --filter @tetherin/local-state build && bun run --filter @tetherin/git-local build && bun run --filter @tetherin/github-cli build && bun run --filter @tetherin/codex-runner build",
+    "build": "bun run build:packages && bun run --filter @tetherin/runner build && bun run --filter @tetherin/web build",
+    "test": "vitest run --config vitest.config.ts && bun test test/bun",
+    "test:fixtures": "bun run --filter @tetherin/provider-pipeline test:fixture && bun run --filter @tetherin/greptile test:fixtures && vitest run --config vitest.fixture.config.ts",
+    "test:integration": "vitest run --config vitest.integration.config.ts",
+    "test:e2e": "playwright test",
     "verify:links": "node scripts/check-markdown-links.mjs",
     "verify:schemas": "node scripts/validate-contracts.mjs",
     "verify:planning": "bash scripts/verify-planning.sh"
   },
   "devDependencies": {
+    "@axe-core/playwright": "4.10.2",
+    "@playwright/test": "1.62.1",
+    "@types/bun": "1.3.11",
+    "@types/node": "24.10.1",
+    "@tetherin/codex-runner": "workspace:*",
+    "@tetherin/config": "workspace:*",
+    "@tetherin/git-local": "workspace:*",
+    "@tetherin/greptile": "workspace:*",
+    "@tetherin/local-state": "workspace:*",
+    "@tetherin/orchestrator": "workspace:*",
     "ajv": "8.20.0",
-    "ajv-formats": "3.0.1"
+    "ajv-formats": "3.0.1",
+    "prettier": "3.9.6",
+    "typescript": "5.9.3",
+    "vitest": "4.1.11"
   },
   "license": "MIT"
 }

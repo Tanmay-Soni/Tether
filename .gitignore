@@ -3,6 +3,7 @@
 .env.*
 !.env.example
 .next/
+.local/
 .tetherin/
 .turbo/
 coverage/
@@ -10,3 +11,6 @@ dist/
 node_modules/
 *.log
 tmp/
+.playwright/
+playwright-report/
+test-results/

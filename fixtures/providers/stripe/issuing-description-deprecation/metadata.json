@@ -1,0 +1,56 @@
+{
+  "schemaVersion": "tetherin.provider-fixture/v1",
+  "fixtureId": "stripe-issuing-description-deprecation",
+  "provider": "stripe",
+  "status": "verified-no-semantic-change",
+  "heroEligible": false,
+  "repositoryUrl": "https://github.com/stripe/openapi",
+  "specPath": "openapi/spec3.yaml",
+  "historicalLegacyPath": true,
+  "licenseSpdx": "MIT",
+  "licenseUrl": "https://raw.githubusercontent.com/stripe/openapi/60054ca82fe7b25692521645dadf4d9671f6da75/LICENSE",
+  "licenseSha256": "8c1ce883f4eee7b531e0b7872dbfc72d410ced87dfff9501305de05ca8d203e5",
+  "old": {
+    "commit": "60054ca82fe7b25692521645dadf4d9671f6da75",
+    "sourceUrl": "https://raw.githubusercontent.com/stripe/openapi/60054ca82fe7b25692521645dadf4d9671f6da75/openapi/spec3.yaml",
+    "fullSpecSha256": "c87b2f4fb565e5af04a6bc49f55b495441d51ceba1a2ec3884c56b4aa00a68e9",
+    "fragmentSha256": "e55c42c18f67486bd97540910c8d1e9b47801b252572180fc1a3136d04f7f60a"
+  },
+  "new": {
+    "commit": "ccf293e84c28a7f557e92434b6ff858855f30a4c",
+    "sourceUrl": "https://raw.githubusercontent.com/stripe/openapi/ccf293e84c28a7f557e92434b6ff858855f30a4c/openapi/spec3.yaml",
+    "fullSpecSha256": "fec9f76d30b5f2fbe5ed297fb3072a6a19ab96dfa800a8171ad966b433250f33",
+    "fragmentSha256": "de95c6c35ede9660c02757d1c1a311056596ca210d3b4dd09324cb043455680e"
+  },
+  "evidenceUrl": "https://github.com/stripe/openapi/commit/ccf293e84c28a7f557e92434b6ff858855f30a4c",
+  "sourceNode": {
+    "jsonPointer": "/paths/~1v1~1issuing~1authorizations~1{authorization}~1approve/post/description",
+    "oldSourceLines": "67715-67723",
+    "newSourceLines": "67715-67723"
+  },
+  "assembly": "The fixture documents add only the minimum OpenAPI wrapper around the exact description values from this adjacent official commit pair.",
+  "finding": "The commit explicitly changes Approve and Decline descriptions to [Deprecated] guidance, but leaves OpenAPI deprecated absent and keeps info.version 2023-08-16. Pinned oasdiff therefore returns [] for both breaking and changelog. This is honest provider guidance evidence, not an eligible semantic migration hero.",
+  "oasdiff": {
+    "version": "1.29.1",
+    "releaseCommit": "2bb87bada404d350cb56e5504e8bd5d76f6159bf",
+    "breakingCommand": [
+      "oasdiff",
+      "breaking",
+      "--format",
+      "json",
+      "https://raw.githubusercontent.com/stripe/openapi/60054ca82fe7b25692521645dadf4d9671f6da75/openapi/spec3.yaml",
+      "https://raw.githubusercontent.com/stripe/openapi/ccf293e84c28a7f557e92434b6ff858855f30a4c/openapi/spec3.yaml"
+    ],
+    "changelogCommand": [
+      "oasdiff",
+      "changelog",
+      "--format",
+      "json",
+      "https://raw.githubusercontent.com/stripe/openapi/60054ca82fe7b25692521645dadf4d9671f6da75/openapi/spec3.yaml",
+      "https://raw.githubusercontent.com/stripe/openapi/ccf293e84c28a7f557e92434b6ff858855f30a4c/openapi/spec3.yaml"
+    ],
+    "breakingOutputSha256": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570",
+    "changelogOutputSha256": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570"
+  },
+  "generatedAt": "2026-08-23T22:17:11Z"
+}

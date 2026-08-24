@@ -1,0 +1,48 @@
+{
+  "name": "review-clean",
+  "executionMode": "fixture",
+  "sequence": [
+    {
+      "tool": "trigger_code_review",
+      "response": {
+        "codeReviewId": "cr_clean",
+        "status": "PENDING",
+        "message": "Code review triggered successfully"
+      }
+    },
+    {
+      "tool": "get_code_review",
+      "response": {
+        "codeReview": {
+          "id": "cr_clean",
+          "status": "COMPLETED",
+          "metadata": {
+            "confidenceScore": 5,
+            "totalFiles": 2,
+            "completedFiles": 2
+          }
+        }
+      }
+    },
+    {
+      "tool": "get_merge_request",
+      "response": {
+        "mergeRequest": {
+          "reviewAnalysis": {
+            "hasNewCommitsSinceReview": false,
+            "confidenceScore": 5
+          }
+        }
+      }
+    },
+    {
+      "tool": "list_merge_request_comments",
+      "response": {
+        "comments": [],
+        "repository": "synthetic/example",
+        "prNumber": 7,
+        "total": 0
+      }
+    }
+  ]
+}

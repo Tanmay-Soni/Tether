@@ -1,0 +1,15 @@
+{
+  "name": "review-stale-head",
+  "executionMode": "fixture",
+  "mergeRequest": {
+    "reviewAnalysis": {
+      "commitsSinceLastReview": [
+        {
+          "sha": "0000000000000000000000000000000000000000"
+        }
+      ],
+      "hasNewCommitsSinceReview": true
+    }
+  },
+  "expectedReviewedHeadSha": null
+}

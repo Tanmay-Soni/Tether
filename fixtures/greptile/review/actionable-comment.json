@@ -1,0 +1,20 @@
+{
+  "name": "review-actionable-comment",
+  "executionMode": "fixture",
+  "comments": [
+    {
+      "id": "152718337",
+      "commentId": "PRRC_synthetic",
+      "body": "**logic:** wrapper still sends the removed geography property.",
+      "authorLogin": "greptile-apps",
+      "filePath": "client.ts",
+      "lineStart": 2,
+      "lineEnd": 2,
+      "isGreptileComment": true,
+      "addressed": false,
+      "hasSuggestion": true,
+      "suggestedCode": "remove geography",
+      "linkedMemory": null
+    }
+  ]
+}

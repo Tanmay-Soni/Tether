@@ -1,0 +1,39 @@
+# Minimal test document assembled from the official OpenAI schema nodes named in
+# metadata.json. It is not the full upstream specification.
+openapi: 3.1.0
+info:
+  title: OpenAI geography-removal fixture
+  version: 1.0.0
+paths:
+  /organization/projects:
+    post:
+      operationId: create-project
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ProjectCreateRequest"
+      responses:
+        "200":
+          description: Successful response
+  /organization/projects/{project_id}:
+    post:
+      operationId: modify-project
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ProjectUpdateRequest"
+      responses:
+        "200":
+          description: Successful response
+components:
+  schemas:
+    ProjectCreateRequest:
+      type: object
+      properties: {}
+    ProjectUpdateRequest:
+      type: object
+      properties: {}

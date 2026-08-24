@@ -1,0 +1,44 @@
+{
+  "name": "@tetherin/provider-pipeline",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./dist/src/index.d.ts",
+      "import": "./dist/src/index.js"
+    }
+  },
+  "files": [
+    "dist",
+    "scripts/install-oasdiff.mjs"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "lint": "eslint . --max-warnings 0",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "vitest run",
+    "test:fixture": "tsc -p tsconfig.build.json && OASDIFF_BIN=$(node scripts/install-oasdiff.mjs node_modules/.cache/tetherin-provider-pipeline) vitest run --config vitest.fixture.config.ts",
+    "test:live": "TETHERIN_LIVE_PROVIDER_TESTS=1 vitest run --config vitest.live.config.ts"
+  },
+  "dependencies": {
+    "ajv": "8.20.0",
+    "ajv-formats": "3.0.1",
+    "yaml": "2.8.1"
+  },
+  "devDependencies": {
+    "@eslint/js": "9.34.0",
+    "@types/node": "24.3.0",
+    "eslint": "9.34.0",
+    "prettier": "3.6.2",
+    "typescript": "5.9.2",
+    "typescript-eslint": "8.41.0",
+    "vitest": "3.2.4"
+  },
+  "engines": {
+    "node": ">=22.18 <25"
+  },
+  "license": "MIT"
+}
