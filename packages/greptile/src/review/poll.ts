@@ -30,6 +30,34 @@ export async function triggerGreptileReview(input: {
     );
   }
   const repository = input.repository.toLowerCase();
+  const triggeredAt = input.now().toISOString();
+  const reviewQuery = {
+    name: repository,
+    remote: "github",
+    defaultBranch: input.defaultBranch,
+    prNumber: input.prNumber,
+    limit: 20,
+    offset: 0,
+  } as const;
+  if (input.executionMode === "live") {
+    const existing = normalizeTriggeredReview(
+      await input.transport.callTool("list_code_reviews", reviewQuery),
+      input.expectedHeadSha,
+      { activeOnly: true },
+    );
+    if (existing)
+      return {
+        transport: "mcp",
+        repository,
+        defaultBranch: input.defaultBranch,
+        prNumber: input.prNumber,
+        branch: input.branch,
+        expectedHeadSha: input.expectedHeadSha,
+        codeReviewId: existing.id,
+        triggeredStatus: "PENDING",
+        triggeredAt,
+      };
+  }
   const response = normalizeTriggerResponse(
     await input.transport.callTool("trigger_code_review", {
       name: repository,
@@ -41,16 +69,11 @@ export async function triggerGreptileReview(input: {
   );
   let codeReviewId = response.codeReviewId;
   for (let attempt = 0; !codeReviewId && attempt < 10; attempt += 1) {
+    if (attempt === 0) await sleep(750);
     const discovered = normalizeTriggeredReview(
-      await input.transport.callTool("list_code_reviews", {
-        name: repository,
-        remote: "github",
-        defaultBranch: input.defaultBranch,
-        prNumber: input.prNumber,
-        limit: 20,
-        offset: 0,
-      }),
+      await input.transport.callTool("list_code_reviews", reviewQuery),
       input.expectedHeadSha,
+      { createdAfter: triggeredAt },
     );
     codeReviewId = discovered?.id ?? null;
     if (!codeReviewId) await sleep(500);
@@ -69,7 +92,7 @@ export async function triggerGreptileReview(input: {
     expectedHeadSha: input.expectedHeadSha,
     codeReviewId,
     triggeredStatus: response.status,
-    triggeredAt: input.now().toISOString(),
+    triggeredAt,
   };
 }
 

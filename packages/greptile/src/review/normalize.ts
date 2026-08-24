@@ -39,6 +39,7 @@ export function normalizeTriggerResponse(value: unknown): {
 export function normalizeTriggeredReview(
   value: unknown,
   expectedHeadSha: string,
+  options: { activeOnly?: boolean; createdAfter?: string } = {},
 ): { id: string; status: ReviewEvidence["status"] } | null {
   const record = isRecord(value) ? value : {};
   const candidates = asArray(record.codeReviews)
@@ -61,6 +62,19 @@ export function normalizeTriggeredReview(
           "SKIPPED",
         ].includes(review.status),
     )
+    .filter(
+      (review) =>
+        !options.activeOnly ||
+        ["PENDING", "REVIEWING_FILES", "GENERATING_SUMMARY"].includes(
+          review.status,
+        ),
+    )
+    .filter((review) => {
+      if (!options.createdAfter) return true;
+      const cutoff = Date.parse(options.createdAfter) - 2_000;
+      const created = Date.parse(review.createdAt);
+      return Number.isFinite(created) && created >= cutoff;
+    })
     .sort((left, right) => right.createdAt.localeCompare(left.createdAt));
   const latest = candidates[0];
   return latest
