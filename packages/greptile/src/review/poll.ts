@@ -9,6 +9,7 @@ import {
   normalizeCodeReviewStatus,
   normalizeMergeRequest,
   normalizeTriggerResponse,
+  normalizeTriggeredReview,
   normalizeUnaddressedComments,
 } from "./normalize.js";
 
@@ -28,23 +29,45 @@ export async function triggerGreptileReview(input: {
       "defaultBranch is required to trigger Greptile review.",
     );
   }
+  const repository = input.repository.toLowerCase();
   const response = normalizeTriggerResponse(
     await input.transport.callTool("trigger_code_review", {
-      name: input.repository,
+      name: repository,
       remote: "github",
       defaultBranch: input.defaultBranch,
       prNumber: input.prNumber,
       branch: input.branch,
     }),
   );
+  let codeReviewId = response.codeReviewId;
+  for (let attempt = 0; !codeReviewId && attempt < 10; attempt += 1) {
+    const discovered = normalizeTriggeredReview(
+      await input.transport.callTool("list_code_reviews", {
+        name: repository,
+        remote: "github",
+        defaultBranch: input.defaultBranch,
+        prNumber: input.prNumber,
+        limit: 20,
+        offset: 0,
+      }),
+      input.expectedHeadSha,
+    );
+    codeReviewId = discovered?.id ?? null;
+    if (!codeReviewId) await sleep(500);
+  }
+  if (!codeReviewId)
+    throw new GreptileAdapterError(
+      "invalid-response",
+      "Greptile accepted the review but did not return an exact-head review ID.",
+    );
   return {
     transport: input.executionMode === "fixture" ? "fixture" : "mcp",
-    repository: input.repository,
+    repository,
     defaultBranch: input.defaultBranch,
     prNumber: input.prNumber,
     branch: input.branch,
     expectedHeadSha: input.expectedHeadSha,
-    codeReviewId: response.codeReviewId,
+    codeReviewId,
     triggeredStatus: response.status,
     triggeredAt: input.now().toISOString(),
   };

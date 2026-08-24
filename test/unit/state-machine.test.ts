@@ -28,4 +28,11 @@ describe("workflow state machine", () => {
       }),
     ).toThrow();
   });
+
+  it("can retry a blocked external review without rerunning migration", () => {
+    expect(transition("GREPTILE_BLOCKED", "GREPTILE_REVIEW")).toBe(
+      "GREPTILE_REVIEW",
+    );
+    expect(allowedActions("GREPTILE_BLOCKED")).toContain("RESUME_REVIEW");
+  });
 });

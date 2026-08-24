@@ -461,6 +461,51 @@ export async function processIntent(
     return;
   }
 
+  if (action === "RESUME_REVIEW") {
+    const artifacts = store.artifacts(runId);
+    const readArtifact = (kind: string): unknown => {
+      const artifact = artifacts.find((entry) => entry.kind === kind);
+      if (!artifact) throw new Error(`REVIEW_EVIDENCE_MISSING:${kind}`);
+      return JSON.parse(
+        readFileSync(
+          join(config.artifactsPath, String(artifact.relative_path)),
+          "utf8",
+        ),
+      );
+    };
+    const manifest = readArtifact("migration-manifest") as Record<
+      string,
+      unknown
+    >;
+    const blast = readArtifact("blast-radius-report") as BlastReport;
+    const checks = readArtifact("check-results") as CheckResult[];
+    const prNumber = Number(run.pr_number);
+    if (!Number.isSafeInteger(prNumber) || prNumber < 1)
+      throw new Error("REVIEW_PR_MISSING");
+    move(store, runId, "GREPTILE_REVIEW", "human", {
+      reason: "Retrying the live exact-head Greptile review",
+      prNumber,
+      headSha: run.current_head_sha,
+    });
+    try {
+      await runGreptileReview(
+        config,
+        store,
+        runId,
+        manifest,
+        blast,
+        checks,
+        prNumber,
+      );
+    } catch {
+      move(store, runId, "GREPTILE_BLOCKED", "greptile", {
+        reason:
+          "Greptile review could not be completed. Verify repository enrollment, then resume the exact-head review.",
+      });
+    }
+    return;
+  }
+
   if (
     action === "RUN_MIGRATION" ||
     action === "RUN_FOLLOWUP" ||

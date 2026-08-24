@@ -8,17 +8,21 @@ import {
 import type { ReviewComment, ReviewEvidence, ReviewHandle } from "../types.js";
 
 export function normalizeTriggerResponse(value: unknown): {
-  codeReviewId: string;
+  codeReviewId: string | null;
   status: "PENDING";
   message?: string;
 } {
   const record = isRecord(value) ? value : {};
-  const codeReviewId = asString(record.codeReviewId);
-  if (!codeReviewId || record.status !== "PENDING") {
+  const nested = isRecord(record.codeReview) ? record.codeReview : {};
+  const codeReviewId =
+    asString(record.codeReviewId ?? record.id) ??
+    asString(nested.codeReviewId ?? nested.id) ??
+    null;
+  if (!codeReviewId && record.success !== true) {
     throw new Error("Invalid trigger_code_review response.");
   }
   const response: {
-    codeReviewId: string;
+    codeReviewId: string | null;
     status: "PENDING";
     message?: string;
   } = {
@@ -30,6 +34,41 @@ export function normalizeTriggerResponse(value: unknown): {
     response.message = message;
   }
   return response;
+}
+
+export function normalizeTriggeredReview(
+  value: unknown,
+  expectedHeadSha: string,
+): { id: string; status: ReviewEvidence["status"] } | null {
+  const record = isRecord(value) ? value : {};
+  const candidates = asArray(record.codeReviews)
+    .filter(isRecord)
+    .filter((review) => asString(review.commitSha) === expectedHeadSha)
+    .map((review) => ({
+      id: asString(review.id ?? review.codeReviewId) ?? "",
+      status: asString(review.status) ?? "",
+      createdAt: asString(review.createdAt) ?? "",
+    }))
+    .filter(
+      (review) =>
+        review.id.length > 0 &&
+        [
+          "PENDING",
+          "REVIEWING_FILES",
+          "GENERATING_SUMMARY",
+          "COMPLETED",
+          "FAILED",
+          "SKIPPED",
+        ].includes(review.status),
+    )
+    .sort((left, right) => right.createdAt.localeCompare(left.createdAt));
+  const latest = candidates[0];
+  return latest
+    ? {
+        id: latest.id,
+        status: latest.status as ReviewEvidence["status"],
+      }
+    : null;
 }
 
 export function normalizeCodeReviewStatus(value: unknown): {

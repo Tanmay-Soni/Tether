@@ -140,6 +140,44 @@ describe("blast-radius enrichment", () => {
 });
 
 describe("review evidence", () => {
+  it("discovers the exact-head review when the live trigger omits its ID", async () => {
+    const adapter = createGreptileEvidenceAdapter({
+      now: fixedNow,
+      transport: new FixtureGreptileTransport([
+        {
+          tool: "trigger_code_review",
+          response: {
+            success: true,
+            message: "Code review triggered successfully",
+          },
+        },
+        {
+          tool: "list_code_reviews",
+          response: {
+            codeReviews: [
+              {
+                id: "20291875",
+                status: "REVIEWING_FILES",
+                commitSha: pullRequest.headSha,
+                createdAt: "2026-08-24T00:21:41.716Z",
+              },
+            ],
+          },
+        },
+      ]),
+    });
+    const handle = await adapter.triggerReview({
+      repository: "Synthetic/Example",
+      defaultBranch: "main",
+      prNumber: pullRequest.number,
+      branch: "tetherin/demo",
+      expectedHeadSha: pullRequest.headSha,
+      executionMode: "live",
+    });
+    expect(handle.codeReviewId).toBe("20291875");
+    expect(handle.repository).toBe("synthetic/example");
+  });
+
   it("binds completed reviews to the exact head only when Greptile reports no new commits", async () => {
     const adapter = createGreptileEvidenceAdapter({
       now: fixedNow,

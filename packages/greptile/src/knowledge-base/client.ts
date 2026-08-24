@@ -64,7 +64,7 @@ export function createKnowledgeBaseClient(
               : {}),
           };
           const exact = page.repositories.find(
-            (repo) => repo.repoName === repository,
+            (repo) => repo.repoName.toLowerCase() === repository.toLowerCase(),
           );
           if (exact) {
             return {

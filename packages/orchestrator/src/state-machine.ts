@@ -57,7 +57,12 @@ export const TRANSITIONS: Readonly<
     "CANCELLED",
   ],
   GREPTILE_PENDING: ["GREPTILE_REVIEW", "NEEDS_INPUT", "CANCELLED"],
-  GREPTILE_BLOCKED: ["MIGRATING", "NEEDS_INPUT", "CANCELLED"],
+  GREPTILE_BLOCKED: [
+    "GREPTILE_REVIEW",
+    "MIGRATING",
+    "NEEDS_INPUT",
+    "CANCELLED",
+  ],
   VALIDATING: [
     "PR_READY",
     "GREPTILE_PENDING",
@@ -127,7 +132,9 @@ export function allowedActions(
     case "GREPTILE_PENDING":
       return ["RESUME_REVIEW"];
     case "GREPTILE_BLOCKED":
-      return followupCount < 1 ? ["RUN_FOLLOWUP"] : [];
+      return followupCount < 1
+        ? ["RESUME_REVIEW", "RUN_FOLLOWUP"]
+        : ["RESUME_REVIEW"];
     case "PR_READY":
       return [];
     default:
