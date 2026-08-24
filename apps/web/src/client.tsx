@@ -133,7 +133,10 @@ function App() {
         `/api/runs/${encodeURIComponent(current.id)}/actions`,
         {
           method: "POST",
-          headers: { "content-type": "application/json" },
+          headers: {
+            "content-type": "application/json",
+            "idempotency-key": `ui:${crypto.randomUUID()}`,
+          },
           body: JSON.stringify({ action: name }),
         },
       );

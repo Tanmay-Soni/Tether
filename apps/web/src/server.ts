@@ -1,4 +1,5 @@
 import { existsSync, readFileSync } from "node:fs";
+import { randomUUID } from "node:crypto";
 import { extname, join, resolve } from "node:path";
 import { loadConfig, redact } from "@tetherin/config";
 import { validateConsumerRepository } from "@tetherin/git-local";
@@ -162,9 +163,11 @@ async function handleApi(request: Request, url: URL): Promise<Response> {
       ).includes(action as never)
     )
       return json({ error: "ACTION_NOT_ALLOWED" }, 409);
+    const requested =
+      request.headers.get("idempotency-key") ?? `api:${randomUUID()}`;
     store.insertIntent({
       runId,
-      intentKey: `${runId}:${action}:${run.state}:${run.updated_at}`,
+      intentKey: `${runId}:${action}:${requested}`,
       type: action,
       expectedState: run.state as WorkflowState,
       ...(run.current_head_sha

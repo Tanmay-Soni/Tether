@@ -462,6 +462,7 @@ export async function processIntent(
   }
 
   if (action === "RESUME_REVIEW") {
+    const attemptId = String(intent.id);
     const artifacts = store.artifacts(runId);
     const readArtifact = (kind: string): unknown => {
       const artifact = artifacts.find((entry) => entry.kind === kind);
@@ -483,6 +484,7 @@ export async function processIntent(
     if (!Number.isSafeInteger(prNumber) || prNumber < 1)
       throw new Error("REVIEW_PR_MISSING");
     move(store, runId, "GREPTILE_REVIEW", "human", {
+      attemptId,
       reason: "Retrying the live exact-head Greptile review",
       prNumber,
       headSha: run.current_head_sha,
@@ -499,6 +501,7 @@ export async function processIntent(
       );
     } catch {
       move(store, runId, "GREPTILE_BLOCKED", "greptile", {
+        attemptId,
         reason:
           "Greptile review could not be completed. Verify repository enrollment, then resume the exact-head review.",
       });
