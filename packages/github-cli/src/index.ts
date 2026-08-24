@@ -13,6 +13,20 @@ export interface PullRequestRecord {
   baseRefName: string;
   baseRefOid: string;
   body?: string;
+  headRepositoryOwner?: { login: string };
+}
+
+export function resolvePullRequestHead(
+  repository: string,
+  branch: string,
+): { branch: string; owner: string } {
+  const separator = branch.indexOf(":");
+  if (separator < 0)
+    return { branch, owner: repository.split("/", 1)[0] ?? "" };
+  return {
+    owner: branch.slice(0, separator),
+    branch: branch.slice(separator + 1),
+  };
 }
 
 export async function verifyGhAuth(cwd: string): Promise<{ login: string }> {
@@ -64,6 +78,7 @@ export async function findPullRequest(
   branch: string,
   base: string,
 ): Promise<PullRequestRecord | null> {
+  const expectedHead = resolvePullRequestHead(repository, branch);
   const result = await runCommand(
     [
       "gh",
@@ -74,15 +89,20 @@ export async function findPullRequest(
       "--state",
       "all",
       "--head",
-      branch,
+      expectedHead.branch,
       "--base",
       base,
       "--json",
-      "number,url,isDraft,state,headRefName,headRefOid,baseRefName,baseRefOid,body",
+      "number,url,isDraft,state,headRefName,headRefOid,headRepositoryOwner,baseRefName,baseRefOid,body",
     ],
     { cwd },
   );
-  const records = JSON.parse(result.stdout) as PullRequestRecord[];
+  const records = (JSON.parse(result.stdout) as PullRequestRecord[]).filter(
+    (record) =>
+      record.headRefName === expectedHead.branch &&
+      record.headRepositoryOwner?.login.toLowerCase() ===
+        expectedHead.owner.toLowerCase(),
+  );
   if (records.length > 1) throw new Error("DUPLICATE_PULL_REQUESTS");
   return records[0] ?? null;
 }
