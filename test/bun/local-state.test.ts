@@ -21,20 +21,28 @@ describe("SQLite state", () => {
     };
     const first = store.createRun(input);
     expect(store.createRun(input).id).toBe(first.id);
-    store.insertIntent({
+    const intentId = store.insertIntent({
       runId: String(first.id),
       intentKey: "start",
       type: "START_RUN",
       expectedState: "READY",
     });
-    expect(() =>
+    expect(
       store.insertIntent({
         runId: String(first.id),
         intentKey: "start",
         type: "START_RUN",
         expectedState: "READY",
       }),
-    ).toThrow();
+    ).toBe(intentId);
+    expect(() =>
+      store.insertIntent({
+        runId: String(first.id),
+        intentKey: "start",
+        type: "DIFFERENT_ACTION",
+        expectedState: "READY",
+      }),
+    ).toThrow("INTENT_KEY_CONFLICT");
     store.appendTransition(String(first.id), "DETECTING_CHANGE", {
       type: "change.discovered",
       actor: "system",

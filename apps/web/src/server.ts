@@ -164,7 +164,7 @@ async function handleApi(request: Request, url: URL): Promise<Response> {
       return json({ error: "ACTION_NOT_ALLOWED" }, 409);
     store.insertIntent({
       runId,
-      intentKey: `${runId}:${action}:${run.current_head_sha ?? run.state}`,
+      intentKey: `${runId}:${action}:${run.state}:${run.updated_at}`,
       type: action,
       expectedState: run.state as WorkflowState,
       ...(run.current_head_sha

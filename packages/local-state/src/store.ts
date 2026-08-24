@@ -368,7 +368,7 @@ export class LocalStateStore {
     const now = new Date().toISOString();
     this.db
       .query(
-        `INSERT INTO action_intents(id,run_id,intent_key,type,expected_state,expected_head_sha,status,created_at,updated_at)
+        `INSERT OR IGNORE INTO action_intents(id,run_id,intent_key,type,expected_state,expected_head_sha,status,created_at,updated_at)
       VALUES(?,?,?,?,?,?,'pending',?,?)`,
       )
       .run(
@@ -381,7 +381,18 @@ export class LocalStateStore {
         now,
         now,
       );
-    return id;
+    const persisted = this.db
+      .query("SELECT * FROM action_intents WHERE intent_key=?")
+      .get(input.intentKey) as Record<string, unknown> | null;
+    if (
+      !persisted ||
+      persisted.run_id !== input.runId ||
+      persisted.type !== input.type ||
+      persisted.expected_state !== input.expectedState ||
+      (persisted.expected_head_sha ?? undefined) !== input.expectedHeadSha
+    )
+      throw new Error("INTENT_KEY_CONFLICT");
+    return String(persisted.id);
   }
 
   claimIntent(owner: string, leaseMs = 30_000): Record<string, unknown> | null {
