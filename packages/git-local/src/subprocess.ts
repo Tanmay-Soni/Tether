@@ -21,6 +21,7 @@ export class CommandError extends Error {
 }
 
 const SAFE_ENV_KEYS = [
+  "HOME",
   "PATH",
   "TMPDIR",
   "LANG",
