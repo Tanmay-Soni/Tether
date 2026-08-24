@@ -24,6 +24,7 @@ function json(value: unknown, status = 200): Response {
 function runView(runId: string): Record<string, unknown> | null {
   const run = store.getRun(runId);
   if (!run) return null;
+  const successfulTerminal = run.state === "PR_READY";
   return {
     ...run,
     actions:
@@ -35,6 +36,10 @@ function runView(runId: string): Record<string, unknown> | null {
           ),
     stages: store.projections(runId).map((entry) => ({
       ...entry,
+      status:
+        successfulTerminal && entry.stage === "validation-pr"
+          ? "complete"
+          : entry.status,
       summary: JSON.parse(String(entry.summary_json)),
     })),
     events: store.events(runId).map((entry) => ({

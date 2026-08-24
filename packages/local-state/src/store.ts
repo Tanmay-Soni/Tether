@@ -249,9 +249,12 @@ export class LocalStateStore {
         "TESTS_FAILED",
         "GREPTILE_BLOCKED",
       ].includes(nextState);
+      const completed = ["PR_READY", "NO_CHANGE", "NO_IMPACT"].includes(
+        nextState,
+      );
       for (const [index, stage] of stages.entries()) {
         const status =
-          index < currentIndex
+          index < currentIndex || (index === currentIndex && completed)
             ? "complete"
             : index > currentIndex
               ? "not-started"
